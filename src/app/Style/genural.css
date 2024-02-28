@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Nosifer&display=swap');
+
+
+.flotingText {
+  font-size: 124px !important;
+}
+
+.title{
+  font-family: "Nosifer", sans-serif !important;
+}
+
+::-webkit-scrollbar{
+  display: none !important;
+}
+
+@media screen and (max-width: 800px) {
+  .flotingText {
+    font-size: 34px !important;
+  }
+}
