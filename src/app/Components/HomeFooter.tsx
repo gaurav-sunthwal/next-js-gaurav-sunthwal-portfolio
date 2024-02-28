@@ -1,9 +1,9 @@
-"use client"
+"use client";
 import { Box, HStack, Heading, Text, VStack } from "@chakra-ui/react";
-import { VscGithubInverted } from "react-icons/vsc";
-import { FaInstagram, FaLinkedin } from "react-icons/fa";
+// import { VscGithubInverted } from "react-icons/vsc";
+// import { FaInstagram, FaLinkedin } from "react-icons/fa";
 import Link from "next/link";
-import { IoMail } from "react-icons/io5";
+// import { IoMail } from "react-icons/io5";
 import { useMediaQuery } from "@chakra-ui/react";
 
 interface SocialCardProps {
@@ -26,9 +26,7 @@ function HomeFooter() {
           <Box>
             <Heading size={"md"}>© Build By Team of Gaurav</Heading>
             <HStack mt={2}>
-              <Box>
-                <IoMail />
-              </Box>
+              <Box>{/* <IoMail /> */}</Box>
               <Text>gauravsunthwal162022@gmail.com</Text>
             </HStack>
           </Box>
@@ -43,15 +41,15 @@ function HomeFooter() {
             </Box>
             <HStack justifyContent={"center"}>
               <SocialCard
-                icon={<FaInstagram />}
+                icon={"Instagram"}
                 link={"https://instagram.com/gaurav_sunthwal"}
               />
               <SocialCard
-                icon={<VscGithubInverted />}
+                icon={"Github"}
                 link={"https://github.com/gaurav-sunthwal"}
               />
               <SocialCard
-                icon={<FaLinkedin />}
+                icon={"Linkedin"}
                 link={"https://www.linkedin.com/in/gaurav-sunthwal/"}
               />
             </HStack>
