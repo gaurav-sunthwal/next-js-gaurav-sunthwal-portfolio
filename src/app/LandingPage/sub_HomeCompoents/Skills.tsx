@@ -15,7 +15,6 @@ import chakra from "/src/assets/Img/Skills/chakra.jpeg";
 import { motion } from "framer-motion";
 import Title from "@/app/Components/Title";
 import Image from "next/image";
-import { Url } from "next/dist/shared/lib/router/router";
 interface SkillIconsProps {
   imgUrl: string;
   skillName: string;
