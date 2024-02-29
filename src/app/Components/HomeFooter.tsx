@@ -65,7 +65,7 @@ function SocialCard({ link, icon }: SocialCardProps) {
     <>
       <Box m={3}>
         <Link href={link} passHref>
-          <Heading>{icon}</Heading>
+          <Heading size={"sd"}>{icon}</Heading>
         </Link>
       </Box>
     </>

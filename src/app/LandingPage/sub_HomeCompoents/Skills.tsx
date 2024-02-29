@@ -1,5 +1,4 @@
-"use client"
-
+"use client";
 
 import { Box, HStack, Heading, VStack, useMediaQuery } from "@chakra-ui/react";
 import codingImg from "/src/assets/Img/image.png";
@@ -43,7 +42,12 @@ function Skills() {
             m="auto"
             p={5}
           >
-            <Image w={isLargerThan ? "100%" : "95%"} src={codingImg} />
+            <Image
+              style={{
+                width: "100%",
+              }}
+              src={codingImg}
+            />
           </Box>
           <Box maxW={isLargerThan ? "50%" : "100%"}>
             <HStack
