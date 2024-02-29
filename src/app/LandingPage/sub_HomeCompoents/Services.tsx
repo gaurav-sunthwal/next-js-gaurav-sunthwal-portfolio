@@ -10,13 +10,12 @@ import {
   Divider,
   HStack,
   Heading,
- 
   Stack,
   Text,
   VStack,
   useMediaQuery,
 } from "@chakra-ui/react";
-import Image from 'next/image'
+import Image from "next/image";
 import fullstack from "/src/assets/ServicesImg/fullstack.png";
 import frontend from "/src/assets/ServicesImg/frontend.png";
 import backend from "/src/assets/ServicesImg/backend.png";
@@ -75,7 +74,12 @@ function ServicesCard({ imgUrl, title, discription }) {
       >
         <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
           <Box p={3} m={isLargerThan ? 4 : 2}>
-            <Card maxW={"sm"} h={isLargerThan ? "700px" : "auto"} bg={"#171717"} color={"white"}>
+            <Card
+              maxW={"sm"}
+              h={isLargerThan ? "700px" : "auto"}
+              bg={"#171717"}
+              color={"white"}
+            >
               <CardBody>
                 <Image
                   src={imgUrl}
@@ -84,7 +88,7 @@ function ServicesCard({ imgUrl, title, discription }) {
                 />
                 <Stack mt="6" spacing="3">
                   <Heading size="md">{title}</Heading>
-                  <Text>{discription}</Text>
+                  <Text textAlign={"justify"}>{discription}</Text>
                 </Stack>
               </CardBody>
             </Card>
