@@ -47,6 +47,7 @@ function Skills() {
                 width: "100%",
               }}
               src={codingImg}
+              alt="code"
             />
           </Box>
           <Box maxW={isLargerThan ? "50%" : "100%"}>
