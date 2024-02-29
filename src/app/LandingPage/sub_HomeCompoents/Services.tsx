@@ -84,7 +84,7 @@ function ServicesCard({ imgUrl, title, discription }) {
                 <Image
                   src={imgUrl}
                   alt="Green double couch with wooden legs"
-                  borderRadius="lg"
+                  sizes="lg"
                 />
                 <Stack mt="6" spacing="3">
                   <Heading size="md">{title}</Heading>
