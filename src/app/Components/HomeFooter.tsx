@@ -1,14 +1,10 @@
-"use client";
 import { Box, HStack, Heading, Text, VStack } from "@chakra-ui/react";
-// import { VscGithubInverted } from "react-icons/vsc";
-// import { FaInstagram, FaLinkedin } from "react-icons/fa";
 import Link from "next/link";
-// import { IoMail } from "react-icons/io5";
 import { useMediaQuery } from "@chakra-ui/react";
 
 interface SocialCardProps {
   link: string;
-  icon: React.ReactNode;
+  icon: string; // Change icon type to string
 }
 
 function HomeFooter() {
@@ -26,7 +22,7 @@ function HomeFooter() {
           <Box>
             <Heading size={"md"}>© Build By Team of Gaurav</Heading>
             <HStack mt={2}>
-              <Box>{/* <IoMail /> */}</Box>
+              {/* <Box>{/* <IoMail /> */}</Box> Remove unused component */}
               <Text>gauravsunthwal162022@gmail.com</Text>
             </HStack>
           </Box>
@@ -41,15 +37,15 @@ function HomeFooter() {
             </Box>
             <HStack justifyContent={"center"}>
               <SocialCard
-                icon={"Instagram"}
+                icon={"Instagram"} // Pass icon name as string
                 link={"https://instagram.com/gaurav_sunthwal"}
               />
               <SocialCard
-                icon={"Github"}
+                icon={"Github"} // Pass icon name as string
                 link={"https://github.com/gaurav-sunthwal"}
               />
               <SocialCard
-                icon={"Linkedin"}
+                icon={"Linkedin"} // Pass icon name as string
                 link={"https://www.linkedin.com/in/gaurav-sunthwal/"}
               />
             </HStack>
@@ -65,7 +61,10 @@ function SocialCard({ link, icon }: SocialCardProps) {
     <>
       <Box m={3}>
         <Link href={link} passHref>
-          <Heading size={"sd"}>{icon}</Heading>
+          {/* Use 'a' tag instead of 'Heading' */}
+          <a>
+            <Heading size={"sd"}>{icon}</Heading>
+          </a>
         </Link>
       </Box>
     </>
