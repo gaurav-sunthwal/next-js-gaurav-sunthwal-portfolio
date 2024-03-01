@@ -5,7 +5,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 
 import { Providers } from "./providers";
-import favicon from "../assets/Img/me.jpg"
+import favicon from "../assets/Img/me.jpg";
+import HomeFooter from "./Components/HomeFooter";
+import Navbar from "./Components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,7 +44,11 @@ export default function RootLayout({
         className={inter.className}
       >
         {" "}
-        <Providers>{children}</Providers>
+        <Providers>
+          <Navbar />
+          {children}
+          <HomeFooter />
+        </Providers>
       </body>
     </html>
   );

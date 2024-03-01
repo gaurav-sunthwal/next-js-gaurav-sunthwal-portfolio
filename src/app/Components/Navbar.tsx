@@ -33,8 +33,8 @@ function Navbar() {
     >
       <HStack p={3} justifyContent="space-between">
         <Box>
-          <Link to="/" smooth={true} duration={500}>
-            <Heading size="lg">Gaurav Sunthwal</Heading>
+          <Link to="/" smooth={true} duration={500} >
+            <Heading cursor={"pointer"} size="lg">Gaurav Sunthwal</Heading>
           </Link>
         </Box>
         {isLargerThan ? (

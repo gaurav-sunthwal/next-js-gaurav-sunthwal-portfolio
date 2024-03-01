@@ -6,9 +6,7 @@ import "./Style/genural.css"
 export default function Home() {
   return (
     <main>
-      <Navbar />
       <LandingPage />
-      <HomeFooter />
     </main>
   );
 }
