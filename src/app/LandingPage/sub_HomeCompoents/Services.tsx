@@ -2,11 +2,20 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { useMediaQuery } from "@chakra-ui/react";
 import Title from "@/app/Components/Title";
-import { VStack, Box, HStack, Card, CardBody, Heading, Text, Stack } from "@chakra-ui/react";
+import {
+  VStack,
+  Box,
+  HStack,
+  Card,
+  CardBody,
+  Heading,
+  Text,
+  Stack,
+} from "@chakra-ui/react";
 
-import fullstack from "/src/assets/ServicesImg/fullstack.png"
-import backend from "/src/assets/ServicesImg/backend.png"
-import frontend from "/src/assets/ServicesImg/frontend.png"
+import fullstack from "/src/assets/ServicesImg/fullstack.png";
+import backend from "/src/assets/ServicesImg/backend.png";
+import frontend from "/src/assets/ServicesImg/frontend.png";
 import path from "path";
 import { Url } from "next/dist/shared/lib/router/router";
 
@@ -54,38 +63,34 @@ function Services() {
   );
 }
 
-function ServicesCard({ imgUrl, title, description }: ServicesCardProps) {
+function ServicesCard({ imgUrl="https://i.postimg.cc/SQf87Hn5/frontend.png", title, description }: ServicesCardProps) {
   const [isLargerThan] = useMediaQuery("(min-width:1000px)");
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: false }}
-    >
-      <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-        <Box p={3} m={isLargerThan ? 4 : 2}>
-          <Card
-            maxW={"sm"}
-            h={isLargerThan ? "700px" : "auto"}
-            bg={"#171717"}
-            color={"white"}
-          >
-            <CardBody>
-              <Image
-                src={imgUrl}
-                alt="Image description" // Add alt text as per your image
-                width={400} // Add width and height attributes as per your image
-                height={400}
-              />
-              <Stack mt="6" spacing="3">
-                <Heading size="md">{title}</Heading>
-                <Text textAlign={"justify"}>{description}</Text>
-              </Stack>
-            </CardBody>
-          </Card>
-        </Box>
-      </motion.button>
-    </motion.div>
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: false }}
+      >
+        <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+          <Box p={3} m={isLargerThan ? 4 : 2}>
+            <Card maxW={"sm"} h={"700px"} bg={"#171717"} color={"white"}>
+              <CardBody>
+                <Image
+                  src={imgUrl}
+                  alt="Green double couch with wooden legs"
+                  borderRadius="lg"
+                />
+                <Stack mt="6" spacing="3">
+                  <Heading size="md">{title}</Heading>
+                  <Text>{description}</Text>
+                </Stack>
+              </CardBody>
+            </Card>
+          </Box>
+        </motion.button>
+      </motion.div>
+    </>
   );
 }
 
