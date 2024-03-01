@@ -63,7 +63,7 @@ function Services() {
   );
 }
 
-function ServicesCard({ imgUrl="https://i.postimg.cc/SQf87Hn5/frontend.png", title, description }: ServicesCardProps) {
+function ServicesCard({ imgUrl, title, description }: ServicesCardProps) {
   const [isLargerThan] = useMediaQuery("(min-width:1000px)");
   return (
     <>
@@ -79,7 +79,7 @@ function ServicesCard({ imgUrl="https://i.postimg.cc/SQf87Hn5/frontend.png", tit
                 <Image
                   src={imgUrl}
                   alt="Green double couch with wooden legs"
-                  borderRadius="lg"
+                  sizes="lg"
                 />
                 <Stack mt="6" spacing="3">
                   <Heading size="md">{title}</Heading>
