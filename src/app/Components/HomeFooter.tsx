@@ -22,16 +22,15 @@ function HomeFooter() {
           <Box>
             <Heading size={"md"}>© Build By Team of Gaurav</Heading>
             <HStack mt={2}>
-              {/* <Box>{/* <IoMail /> */}</Box> Remove unused component */}
               <Text>gauravsunthwal162022@gmail.com</Text>
             </HStack>
           </Box>
           <Box textAlign={"center"} maxW={isLargerThan ? "50%" : "100%"}>
             <Box p={3}>
-              <Heading p={2}>Let’s work together</Heading>
+              <Heading p={2}>Lets work together</Heading>
               <Text p={2}>
-                I'm currently available for new work. Let me know if you're
-                looking for a digital designer. Let’s talk about the next big
+                Im currently available for new work. Let me know if youre
+                looking for a digital designer. Lets talk about the next big
                 thing!
               </Text>
             </Box>
