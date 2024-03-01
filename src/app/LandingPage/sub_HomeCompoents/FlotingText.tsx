@@ -19,7 +19,7 @@ function FlotingText() {
         }
       />
       <MovingTextLeftToRight
-        text={
+        LeftToRightText={
           "I Can : Artificial Intelligence • Web Development • App Development"
         }
       />
@@ -27,54 +27,55 @@ function FlotingText() {
   );
 }
 
-const MovingTextRightToLeft = (props) => {
+const MovingTextRightToLeft = ({text}: { text: string }) => {
   useEffect(() => {
     const scrollingText = document.getElementById("scrollingTextRightToLeft");
 
-    const updateTextPosition = () => {
-      const scrollPosition = window.scrollY;
-      scrollingText.style.transform = `translateX(${-scrollPosition / 15}px)`;
-      requestAnimationFrame(updateTextPosition);
-    };
+    if (scrollingText) {
+      const updateTextPosition = () => {
+        const scrollPosition = window.scrollY;
+        scrollingText.style.transform = `translateX(${-scrollPosition / 15}px)`;
+        requestAnimationFrame(updateTextPosition);
+      };
 
-    updateTextPosition();
+      updateTextPosition();
 
-    return () => {
-      window.removeEventListener("scroll", updateTextPosition);
-    };
+      return () => {
+        window.removeEventListener("scroll", updateTextPosition);
+      };
+    }
   }, []);
 
   return (
     <div className="moving-text" id="scrollingTextRightToLeft">
-      <Heading className="leftToRight flotingText">{props.text}</Heading>
+      <Heading className="leftToRight flotingText">{text}</Heading>
     </div>
   );
 };
 
 // MovingTextLeftToRight
-
-const MovingTextLeftToRight = (props) => {
+const MovingTextLeftToRight = ({LeftToRightText}: { LeftToRightText: string }) => {
   useEffect(() => {
     const scrollingText = document.getElementById("scrollingTextLeftToRight");
 
-    const updateTextPosition = () => {
-      const scrollPosition = window.scrollY;
-      scrollingText.style.transform = `translateX(${scrollPosition / 15}px)`;
-      requestAnimationFrame(updateTextPosition);
-    };
+    if (scrollingText) {
+      const updateTextPosition = () => {
+        const scrollPosition = window.scrollY;
+        scrollingText.style.transform = `translateX(${scrollPosition / 15}px)`;
+        requestAnimationFrame(updateTextPosition);
+      };
 
-    // Initial positioning
-    updateTextPosition();
+      updateTextPosition();
 
-    // Cleanup function to remove the event listener when the component unmounts
-    return () => {
-      window.removeEventListener("scroll", updateTextPosition);
-    };
-  }, []); // Empty dependency array ensures that the effect runs only once (on mount)
+      return () => {
+        window.removeEventListener("scroll", updateTextPosition);
+      };
+    }
+  }, []);
 
   return (
     <div className="moving-text" id="scrollingTextLeftToRight">
-      <Heading className="RightToLeft flotingText">{props.text}</Heading>
+      <Heading className="RightToLeft flotingText">{LeftToRightText}</Heading>
     </div>
   );
 };

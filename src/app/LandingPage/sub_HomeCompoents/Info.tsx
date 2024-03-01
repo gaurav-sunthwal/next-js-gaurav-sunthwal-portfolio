@@ -53,7 +53,7 @@ function Info() {
                 >
                   Passionate Computer Science student at MIT-WPU, adept in web
                   development (ReactJS, HTML, CSS, Node.js). Eager to learn,
-                  innovate, and collaborate for impactful tech solutions. Let's
+                  innovate, and collaborate for impactful tech solutions. Lets
                   connect and explore the exciting possibilities! 🚀
                 </Text>
               </Box>

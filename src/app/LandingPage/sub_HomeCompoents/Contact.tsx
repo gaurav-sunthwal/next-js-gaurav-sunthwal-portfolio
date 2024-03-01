@@ -41,23 +41,27 @@ function Contact(): JSX.Element {
 
   const sendEmail = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    emailjs
-      .sendForm(
-        "service_734aiqi",
-        "template_4r1j11q",
-        form.current,
-        "PCu8cBYWjJNRMZQG2"
-      )
-      .then(
-        (result) => {
-          toast.success("Successfully Received!");
-        },
-        (error) => {
-          toast(error.text);
-        }
-      );
-    e.currentTarget.reset();
+  
+    if (form.current) {
+      emailjs
+        .sendForm(
+          "service_734aiqi",
+          "template_4r1j11q",
+          form.current,
+          "PCu8cBYWjJNRMZQG2"
+        )
+        .then(
+          (result) => {
+            toast.success("Successfully Received!");
+          },
+          (error) => {
+            toast(error.text);
+          }
+        );
+      e.currentTarget.reset();
+    } else {
+      console.error("Form ref is null");
+    }
   };
 
   const handalClick = () => {};
@@ -98,7 +102,7 @@ function Contact(): JSX.Element {
                   <FormControl>
                     <FormLabel>Message</FormLabel>
                     <Textarea
-                      rows={isLargerThan ? "10" : "7"}
+                      rows={isLargerThan ? 10 : 7}
                       required
                       name="message"
                     />

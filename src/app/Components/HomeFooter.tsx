@@ -1,3 +1,5 @@
+"use client";
+
 import { Box, HStack, Heading, Text, VStack } from "@chakra-ui/react";
 import Link from "next/link";
 import { useMediaQuery } from "@chakra-ui/react";
@@ -61,9 +63,7 @@ function SocialCard({ link, icon }: SocialCardProps) {
       <Box m={3}>
         <Link href={link} passHref>
           {/* Use 'a' tag instead of 'Heading' */}
-          <a>
             <Heading size={"sd"}>{icon}</Heading>
-          </a>
         </Link>
       </Box>
     </>
