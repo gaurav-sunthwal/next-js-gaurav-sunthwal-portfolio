@@ -18,10 +18,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body style={{
-        background : "black",
-        color : "white",
-      }} className={inter.className}>
+      <head>
+        <meta
+          name="google-site-verification"
+          content="brnrAvH6YNLyRPlnUkA-3zemJp4es-Q9WvGhuEnt-no"
+        />
+      </head>
+      <body
+        style={{
+          background: "black",
+          color: "white",
+        }}
+        className={inter.className}
+      >
         {" "}
         <Providers>{children}</Providers>
       </body>

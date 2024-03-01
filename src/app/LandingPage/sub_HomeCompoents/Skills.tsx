@@ -62,8 +62,8 @@ function Skills() {
                 skillName="Next Js"
               /> */}
               <SkillIcons imgUrl={html} skillName="HTML" />
-              <SkillIcons imgUrl={chakra} skillName="Tailwind CSS" />
-              <SkillIcons imgUrl={tailwind} skillName="Chakra UI" />
+              <SkillIcons imgUrl={tailwind} skillName="Tailwind CSS" />
+              <SkillIcons imgUrl={chakra} skillName="Chakra UI" />
               <SkillIcons imgUrl={js} skillName="Javascript" />
               <SkillIcons imgUrl={nodejs} skillName="Node JS" />
               <SkillIcons imgUrl={mongoDB} skillName="MongoDB" />
