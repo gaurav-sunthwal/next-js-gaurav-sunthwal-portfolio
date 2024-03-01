@@ -8,7 +8,7 @@ import { Providers } from "./providers";
 import favicon from "../assets/Img/me.jpg";
 import HomeFooter from "./Components/HomeFooter";
 import Navbar from "./Components/Navbar";
-
+import { Analytics } from "@vercel/analytics/react"
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -47,6 +47,7 @@ export default function RootLayout({
         <Providers>
           <Navbar />
           {children}
+          <Analytics/>
           <HomeFooter />
         </Providers>
       </body>
