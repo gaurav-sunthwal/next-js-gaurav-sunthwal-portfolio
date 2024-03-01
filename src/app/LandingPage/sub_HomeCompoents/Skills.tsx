@@ -1,5 +1,5 @@
+//@ts-nocheck
 "use client";
-
 import { Box, HStack, Heading, VStack, useMediaQuery } from "@chakra-ui/react";
 import codingImg from "/src/assets/Img/image.png";
 import ReactImg from "/src/assets/Img/Skills/react.png";
@@ -56,19 +56,19 @@ function Skills() {
               flexWrap={isLargerThan ? "wrap" : "nowrap"}
               justifyContent="normal"
             >
-              <SkillIcons imgUrl={""} skillName="React Js" />
+              <SkillIcons imgUrl={ReactImg} skillName="React Js" />
               {/* <SkillIcons
                 imgUrl="https://chirag.codes/skills/nextjs.webp"
                 skillName="Next Js"
               /> */}
-              <SkillIcons imgUrl={""} skillName="HTML" />
-              <SkillIcons imgUrl={""} skillName="Tailwind CSS" />
-              <SkillIcons imgUrl={""} skillName="Chakra UI" />
-              <SkillIcons imgUrl={""} skillName="Javascript" />
-              <SkillIcons imgUrl={""} skillName="Node JS" />
-              <SkillIcons imgUrl={""} skillName="MongoDB" />
-              <SkillIcons imgUrl={""} skillName="GIT" />
-              <SkillIcons imgUrl={""} skillName="Android" />
+              <SkillIcons imgUrl={html} skillName="HTML" />
+              <SkillIcons imgUrl={chakra} skillName="Tailwind CSS" />
+              <SkillIcons imgUrl={tailwind} skillName="Chakra UI" />
+              <SkillIcons imgUrl={js} skillName="Javascript" />
+              <SkillIcons imgUrl={nodejs} skillName="Node JS" />
+              <SkillIcons imgUrl={mongoDB} skillName="MongoDB" />
+              <SkillIcons imgUrl={git} skillName="GIT" />
+              <SkillIcons imgUrl={android} skillName="Android" />
             </HStack>
           </Box>
         </HStack>
