@@ -76,7 +76,7 @@ function ServicesCard({ imgUrl, title, description }: ServicesCardProps) {
       >
         <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
           <Box p={3} m={isLargerThan ? 4 : 2}>
-            <Card maxW={"sm"} h={"700px"} bg={"#171717"} color={"white"}>
+            <Card maxW={"sm"} h={isLargerThan ? "700px" : "auto"} bg={"#171717"} color={"white"}>
               <CardBody>
                 <Image
                   src={imgUrl}
