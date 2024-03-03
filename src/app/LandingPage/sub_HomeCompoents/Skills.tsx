@@ -13,6 +13,7 @@ import nodejs from "/src/assets/Img/Skills/nodejs.png";
 import chakra from "/src/assets/Img/Skills/chakra.jpeg";
 import { motion } from "framer-motion";
 import Title from "@/app/Components/Title";
+import NextJS from "/src/assets/Img/Skills/nextjs.webp"
 import Image from "next/image";
 interface SkillIconsProps {
   imgUrl: string;
@@ -57,10 +58,10 @@ function Skills() {
               justifyContent="normal"
             >
               <SkillIcons imgUrl={ReactImg} skillName="React Js" />
-              {/* <SkillIcons
-                imgUrl="https://chirag.codes/skills/nextjs.webp"
+              <SkillIcons
+                imgUrl={NextJS}
                 skillName="Next Js"
-              /> */}
+              />
               <SkillIcons imgUrl={html} skillName="HTML" />
               <SkillIcons imgUrl={tailwind} skillName="Tailwind CSS" />
               <SkillIcons imgUrl={chakra} skillName="Chakra UI" />
