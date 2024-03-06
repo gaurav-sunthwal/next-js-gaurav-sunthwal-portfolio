@@ -36,10 +36,10 @@ function Info() {
                 m={isLargerThan ? "auto" : "10px"}
                 p={2}
                 position={"relative"}
-                left={isLargerThan ? "0%" : "60%"}
+                // left={isLargerThan ? "0%" : "60%"}
               >
                 <Image
-                  w={"120px"}
+                  w={isLargerThan ? "120px" : "100%"}
                   borderRadius={"50%"}
                   src={myImg.src}
                   alt="My Image"
@@ -53,9 +53,10 @@ function Info() {
                   color={"#F4E7D4"}
                 >
                   Passionate Computer Science student at MIT-WPU, adept in web
-                  development (ReactJS, HTML, CSS, Node.js). Eager to learn,
-                  innovate, and collaborate for impactful tech solutions. Lets
-                  connect and explore the exciting possibilities! 🚀
+                  development ( NextJs , ReactJS, HTML, CSS, Node.js , MongoDB
+                  ). Eager to learn, innovate, and collaborate for impactful
+                  tech solutions. Lets connect and explore the exciting
+                  possibilities! 🚀
                 </Text>
               </Box>
             </HStack>
