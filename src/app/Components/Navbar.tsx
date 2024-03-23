@@ -42,6 +42,7 @@ function Navbar() {
             <HStack className="manu">
               <Manu title={"Home"} hashLink={"#Home"} />
               <Manu title={"Skills"} hashLink={"#skills"} />
+              <Manu title={"Projects"} hashLink={"#Projects"} />
               <Manu title={"Services"} hashLink={"#Services"} />
               <Manu title={"Contact"} hashLink={"#Contact"} />
             </HStack>
@@ -76,6 +77,7 @@ function Navbar() {
           <Box p={2}>
             <Manu title="Home" hashLink="#Home" />
             <Manu title="Skills" hashLink="#skills" />
+            <Manu title={"Projects"} hashLink={"#Projects"} />
             <Manu title="Services" hashLink="#Services" />
             <Manu title="Contact" hashLink="#Contact" />
           </Box>

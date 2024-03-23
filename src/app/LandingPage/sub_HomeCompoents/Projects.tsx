@@ -36,7 +36,9 @@ import Link from "next/link";
 export default function Projects() {
   return (
     <>
-      <Title title="Projects" />
+      <Box m={2}>
+        <Title title="Projects" />
+      </Box>
 
       <HStack
         justifyContent={"space-evenly"}
@@ -57,7 +59,6 @@ export default function Projects() {
             `}
           projectLink={"https://generate-readme.vercel.app/"}
         />
-        
       </HStack>
     </>
   );
