@@ -4,6 +4,10 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Nosifer&display=swap");
 
+body {
+  scroll-behavior: smooth !important;
+}
+
 .flotingText {
   font-size: 124px !important;
 }

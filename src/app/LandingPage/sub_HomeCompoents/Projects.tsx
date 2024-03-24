@@ -25,13 +25,14 @@ import {
   useMediaQuery,
 } from "@chakra-ui/react";
 import { IoEyeSharp } from "react-icons/io5";
-import { BiChat, BiLike, BiShare } from "react-icons/bi";
-import { GoLink } from "react-icons/go";
+import { BiChat, BiLike, BiShare, BiSolidLike } from "react-icons/bi";
+import { GoLinkExternal } from "react-icons/go";
 
 import genrateReadme from "/src/assets/Img/genrateReadme.png";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Projects() {
   return (
@@ -100,6 +101,19 @@ function ProjectCard({
 }) {
   const [isLargerThan] = useMediaQuery("(min-width: 1000px)");
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [like, setLike] = useState(false);
+  useEffect(() => {
+    const storedLike = localStorage.getItem("like");
+    if (storedLike) {
+      setLike(JSON.parse(storedLike));
+    }
+  }, []);
+  useEffect(() => {
+    localStorage.setItem("like", JSON.stringify(like));
+  }, [like]);
+  const toggleLike = () => {
+    setLike(!like);
+  };
   return (
     <>
       <motion.div
@@ -147,7 +161,9 @@ function ProjectCard({
                       <Button colorScheme="blue" mr={3} onClick={onClose}>
                         Close
                       </Button>
-                      <Button variant="ghost">Secondary Action</Button>
+                      <Link href={projectLink}>
+                        <Button colorScheme={"purple"}>Open</Button>
+                      </Link>
                     </ModalFooter>
                   </ModalContent>
                 </Modal>
@@ -167,12 +183,17 @@ function ProjectCard({
                 },
               }}
             >
-              <Button flex="1" variant="ghost" leftIcon={<BiLike />}>
-                Like
+              <Button
+                flex="1"
+                variant="ghost"
+                onClick={toggleLike}
+                leftIcon={like ? <BiLike /> : <BiSolidLike />}
+              >
+                {like ? "Like" : "UnLike"}
               </Button>
               <Link href={`${projectLink}`} target="blank">
-                <Button flex="1" variant="ghost" leftIcon={<GoLink />}>
-                  GoTo Link
+                <Button flex="1" variant="ghost" leftIcon={<GoLinkExternal />}>
+                  Visit
                 </Button>
               </Link>
               <Button flex="1" variant="ghost" leftIcon={<BiShare />}>
