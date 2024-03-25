@@ -13,6 +13,10 @@ import {
   HStack,
   Heading,
   IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -25,7 +29,8 @@ import {
   useMediaQuery,
 } from "@chakra-ui/react";
 import { IoEyeSharp } from "react-icons/io5";
-import { BiChat, BiLike, BiShare, BiSolidLike } from "react-icons/bi";
+import { FaFacebook, FaLinkedin, FaTwitter, FaWhatsapp } from "react-icons/fa";
+import { BiLike, BiSolidLike, BiShare } from "react-icons/bi";
 import { GoLinkExternal } from "react-icons/go";
 
 import genrateReadme from "/src/assets/Img/genrateReadme.png";
@@ -101,16 +106,12 @@ function ProjectCard({
 }) {
   const [isLargerThan] = useMediaQuery("(min-width: 1000px)");
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [like, setLike] = useState(false);
-  useEffect(() => {
-    const storedLike = localStorage.getItem("like");
-    if (storedLike) {
-      setLike(JSON.parse(storedLike));
-    }
-  }, []);
-  useEffect(() => {
-    localStorage.setItem("like", JSON.stringify(like));
-  }, [like]);
+  const [like, setLike] = useState(true);
+  const twitterShareUrl = `https://twitter.com/intent/tweet?url=${projectLink}&text=${projectName}`;
+  const whatsappShareUrl = `https://wa.me/?text=${projectName} - ${projectLink}`;
+  const linkedinShareUrl = `https://www.linkedin.com/shareArticle?url=${projectLink}&title=${projectName}`;
+  const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${projectLink}&quote=${projectName}`;
+
   const toggleLike = () => {
     setLike(!like);
   };
@@ -175,7 +176,7 @@ function ProjectCard({
             <Image objectFit="cover" src={imgSrc} alt="Chakra UI" />
 
             <CardFooter
-              justify="space-between"
+              justify="space-evenly"
               flexWrap="wrap"
               sx={{
                 "& > button": {
@@ -184,7 +185,7 @@ function ProjectCard({
               }}
             >
               <Button
-                flex="1"
+                // flex="1"
                 variant="ghost"
                 onClick={toggleLike}
                 leftIcon={like ? <BiLike /> : <BiSolidLike />}
@@ -196,13 +197,51 @@ function ProjectCard({
                   Visit
                 </Button>
               </Link>
-              <Button flex="1" variant="ghost" leftIcon={<BiShare />}>
-                Share
-              </Button>
+              <Menu>
+                <MenuButton as={Button} variant="ghost" textAlign={"center"}>
+                  <HStack justifyContent={"center"}>
+                    <BiShare />
+                    <Text size={"sm"}>Share</Text>
+                  </HStack>
+                </MenuButton>
+
+                <MenuList fontSize={"20px"}>
+                  <MenuItemSec
+                    shereLink={twitterShareUrl}
+                    iconName={<FaTwitter />}
+                    title={"Twitter"}
+                  />
+                  <MenuItemSec
+                    shereLink={facebookShareUrl}
+                    iconName={<FaFacebook />}
+                    title={"Facebook"}
+                  />
+                  <MenuItemSec
+                    shereLink={linkedinShareUrl}
+                    iconName={<FaLinkedin />}
+                    title={"Linkedin"}
+                  />
+                  <MenuItemSec
+                    shereLink={whatsappShareUrl}
+                    iconName={<FaWhatsapp />}
+                    title={"Whatsapp"}
+                  />
+                </MenuList>
+              </Menu>
             </CardFooter>
           </Card>
         </Box>
       </motion.div>
+    </>
+  );
+}
+
+function MenuItemSec({ iconName, title, shereLink }) {
+  return (
+    <>
+      <Link href={`${shereLink}`} target="blank">
+        <MenuItem icon={iconName}>{title}</MenuItem>
+      </Link>
     </>
   );
 }
