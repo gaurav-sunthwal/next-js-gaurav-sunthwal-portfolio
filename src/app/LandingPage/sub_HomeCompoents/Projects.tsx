@@ -34,6 +34,7 @@ import { BiLike, BiSolidLike, BiShare } from "react-icons/bi";
 import { GoLinkExternal } from "react-icons/go";
 
 import genrateReadme from "/src/assets/Img/genrateReadme.png";
+import ecommers from "/src/assets/Img/ecommers.png";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -64,6 +65,16 @@ export default function Projects() {
             I've utilized the awesome capabilities of Next.js and Chakra UI to craft a dynamic and visually stunning GitHub profile readme. With Next.js providing powerful server-side rendering and Chakra UI offering a sleek and customizable component library, this project promises to enhance the presentation of my GitHub profile.
             `}
           projectLink={"https://generate-readme.vercel.app/"}
+        />
+        <ProjectCard
+          projectName={"E commearce"}
+          discription={`
+          Crafted a comprehensive e-commerce solution utilizing the power of Next.js, merging cutting-edge technology with intuitive design to create a dynamic online shopping experience. Engineered with scalability in mind, the platform seamlessly integrates advanced functionalities to enhance user engagement, optimize performance, and drive business growth.
+          `}
+          Creator={"Gaurav Sunthwal"}
+          company={"Amazon"}
+          imgSrc={ecommers}
+          projectLink={"https://gocrazy-gaurav.vercel.app/"}
         />
       </HStack>
     </>
@@ -171,7 +182,7 @@ function ProjectCard({
               </Flex>
             </CardHeader>
             <CardBody>
-              <Text>{discription}</Text>
+              <Text h={"180px"} overflow={"auto"}>{discription}</Text>
             </CardBody>
             <Image objectFit="cover" src={imgSrc} alt="Chakra UI" />
 
