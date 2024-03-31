@@ -37,7 +37,7 @@ function Services() {
       <HStack
         p={3}
         flexWrap={"wrap"}
-        justifyContent={isLargerThan ? "space-between" : "center"}
+        justifyContent={isLargerThan ? "space-evenly" : "center"}
       >
         <ServicesCard
           imgUrl={fullstack} // Example path, replace it with your actual path
