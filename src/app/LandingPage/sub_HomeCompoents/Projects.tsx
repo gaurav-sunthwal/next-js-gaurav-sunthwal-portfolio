@@ -35,6 +35,7 @@ import { GoLinkExternal } from "react-icons/go";
 
 import genrateReadme from "/src/assets/Img/genrateReadme.png";
 import ecommers from "/src/assets/Img/ecommers.png";
+import legitly from "/src/assets/Img/legitly.png";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -58,7 +59,7 @@ export default function Projects() {
             "https://generate-readme.vercel.app/_next/image?url=%2F_next%2Fstatic%2Fmedia%2FGR.3f54d9a7.jpeg&w=128&q=75"
           }
           projectName={"Generate Readme"}
-          company={"MIT-WPU"}
+          company={"Learning Project"}
           Creator={"Gaurav Sunthwal"}
           imgSrc={genrateReadme}
           discription={`
@@ -67,14 +68,14 @@ export default function Projects() {
           projectLink={"https://generate-readme.vercel.app/"}
         />
         <ProjectCard
-          projectName={"E commearce"}
+          projectName={"LEGITLY"}
           discription={`
-          Crafted a comprehensive e-commerce solution utilizing the power of Next.js, merging cutting-edge technology with intuitive design to create a dynamic online shopping experience. Engineered with scalability in mind, the platform seamlessly integrates advanced functionalities to enhance user engagement, optimize performance, and drive business growth.
+          LEGITLY is a PDF verification platform developed during the Hack MIT hackathon project. As a frontend developer, I utilized Next.js and Chakra UI to create a seamless user experience. LEGITLY ensures document integrity through advanced algorithms, providing instant verification results and a user-friendly dashboard. It's a convenient solution for individuals and organizations seeking trust in their digital documents.
           `}
-          Creator={"Gaurav Sunthwal"}
-          company={"Amazon"}
-          imgSrc={ecommers}
-          projectLink={"https://gocrazy-gaurav.vercel.app/"}
+          Creator={"Gaurav and Team"}
+          company={"Hackathon Project"}
+          imgSrc={legitly}
+          projectLink={"https://legitly.yashraj.eu.org/"}
         />
       </HStack>
     </>
@@ -138,7 +139,7 @@ function ProjectCard({
             <CardHeader>
               <Flex spacing="4">
                 <Flex flex="1" gap="4" alignItems="center" flexWrap="wrap">
-                  <Avatar name={Creator} src={LogoImg} />
+                  <Avatar name={projectName} src={LogoImg} />
 
                   <Box>
                     <Heading size="sm">{projectName}</Heading>
