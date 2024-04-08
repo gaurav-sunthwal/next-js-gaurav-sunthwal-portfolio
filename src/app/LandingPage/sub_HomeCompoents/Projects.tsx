@@ -1,6 +1,8 @@
 //@ts-nocheck
 "use client";
 import Title from "@/app/Components/Title";
+import React from "react";
+
 import {
   Avatar,
   Box,
@@ -9,6 +11,13 @@ import {
   CardBody,
   CardFooter,
   CardHeader,
+  Drawer,
+  DrawerBody,
+  DrawerCloseButton,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
   Flex,
   HStack,
   Heading,
@@ -118,6 +127,7 @@ function ProjectCard({
 }) {
   const [isLargerThan] = useMediaQuery("(min-width: 1000px)");
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const btnRef = React.useRef();
   const [like, setLike] = useState(true);
   const twitterShareUrl = `https://twitter.com/intent/tweet?url=${projectLink}&text=${projectName}`;
   const whatsappShareUrl = `https://wa.me/?text=${projectName} - ${projectLink}`;
@@ -154,9 +164,10 @@ function ProjectCard({
                   colorScheme="gray"
                   aria-label="See menu"
                   icon={<IoEyeSharp />}
+                  ref={btnRef}
                 />
 
-                <Modal onClose={onClose} isOpen={isOpen} isCentered>
+                {/* <Modal onClose={onClose} isOpen={isOpen} isCentered>
                   <ModalOverlay />
                   <ModalContent color={"white"} bg={"black"} w={"200%"}>
                     <ModalHeader>{projectName}</ModalHeader>
@@ -179,11 +190,45 @@ function ProjectCard({
                       </Link>
                     </ModalFooter>
                   </ModalContent>
-                </Modal>
+                </Modal> */}
+
+                <Drawer
+                  isOpen={isOpen}
+                  placement="right"
+                  onClose={onClose}
+                  finalFocusRef={btnRef}
+                  size={"md"}
+                >
+                  <DrawerOverlay />
+                  <DrawerContent color={"black"} p={0} m={0}>
+                    <DrawerCloseButton />
+                    <DrawerHeader>{projectName}</DrawerHeader>
+
+                    <DrawerBody p={0} m={0}>
+                      <iframe
+                        src={projectLink}
+                        width={"100%"}
+                        height={"100%"}
+                        frameborder="0"
+                      ></iframe>
+                    </DrawerBody>
+
+                    <DrawerFooter>
+                      <Button colorScheme="blue" mr={3} onClick={onClose}>
+                        Close
+                      </Button>
+                      <Link href={projectLink}>
+                        <Button colorScheme={"purple"}>Open</Button>
+                      </Link>
+                    </DrawerFooter>
+                  </DrawerContent>
+                </Drawer>
               </Flex>
             </CardHeader>
             <CardBody>
-              <Text h={"180px"} overflow={"auto"}>{discription}</Text>
+              <Text h={"180px"} overflow={"auto"}>
+                {discription}
+              </Text>
             </CardBody>
             <Image objectFit="cover" src={imgSrc} alt="Chakra UI" />
 
