@@ -74,7 +74,7 @@ export default function Resume() {
               <a href="https://internshala.com/download/resume" download>
                 <Button
                   m={5}
-                  w={"300px"}
+                  w={isLargerThan ? "300px" : "100%"}
                   h={"70px"}
                   fontSize={"60px"}
                   className="nextBtn"
