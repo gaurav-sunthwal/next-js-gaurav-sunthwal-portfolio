@@ -9,6 +9,7 @@ import FlotingText from "./sub_HomeCompoents/FlotingText";
 import Services from "./sub_HomeCompoents/Services";
 import Contact from "./sub_HomeCompoents/Contact";
 import Projects from "./sub_HomeCompoents/Projects";
+import Resume from "./sub_HomeCompoents/Resume";
 
 function LandingPage() {
   const [isLargerThan] = useMediaQuery("(min-width: 1000px)");
@@ -33,6 +34,7 @@ function LandingPage() {
       </Box>
       <Box id="Contact">
         <Contact/>
+        <Resume/>
       </Box>
     </Box>
   );
