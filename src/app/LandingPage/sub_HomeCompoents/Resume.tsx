@@ -70,7 +70,7 @@ export default function Resume() {
                 socalLink={"mailto:gauravsunthwal162022@gmail.com"}
               />
             </HStack>
-            <HStack justifyContent={"center"}>
+            <HStack justifyContent={"center"} w={"100%"}>
               <a href="https://internshala.com/download/resume" download>
                 <Button
                   m={5}
@@ -106,7 +106,7 @@ export default function Resume() {
       </VStack>
 
       <VStack p={3}>
-        <Heading textAlign={"center"} size={"2xl"}>
+        <Heading color={"#F5D0FE"} textAlign={"center"} size={isLargerThan ? "4xl" : "2xl"}>
           Turning Imagination into Reality
         </Heading>
         <HStack justifyContent={"center"}>
