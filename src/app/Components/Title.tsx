@@ -8,7 +8,7 @@ function Title({ title }: TitleProps) {
   return (
     <div>
       <Box p={3} textAlign={"center"}>
-        <Heading size={"2xl"} className="title">
+        <Heading color={"#E4E4E7"} size={"2xl"} className="title">
           {title}
         </Heading>
       </Box>

@@ -38,10 +38,17 @@ import {
   useMediaQuery,
 } from "@chakra-ui/react";
 import { IoEyeSharp } from "react-icons/io5";
-import { FaFacebook, FaLinkedin, FaTwitter, FaWhatsapp } from "react-icons/fa";
+import {
+  FaFacebook,
+  FaGithub,
+  FaLinkedin,
+  FaTwitter,
+  FaWhatsapp,
+} from "react-icons/fa";
 import { BiLike, BiSolidLike, BiShare } from "react-icons/bi";
 import { GoLinkExternal } from "react-icons/go";
 
+import portfolioWebsite from "/src/assets/Img/project6.png";
 import genrateReadme from "/src/assets/Img/genrateReadme.png";
 import ecommers from "/src/assets/Img/ecommers.png";
 import legitly from "/src/assets/Img/legitly.png";
@@ -65,6 +72,21 @@ export default function Projects() {
       >
         <ProjectCard
           LogoImg={
+            "https://gaurav-sunthwal.vercel.app/_next/static/media/me.9e81b52f.jpg"
+          }
+          projectName={"Portfolio Website"}
+          company={"Learning Projects"}
+          Creator={"Gaurav Sunthwal"}
+          imgSrc={portfolioWebsite}
+          discription={`
+            I've utilized the awesome capabilities of Next.js and Chakra UI to craft a dynamic and visually stunning GitHub profile readme. With Next.js providing powerful server-side rendering and Chakra UI offering a sleek and customizable component library, this project promises to enhance the presentation of my GitHub profile.
+            `}
+          projectLink={"https://gaurav-sunthwal.vercel.app/"}
+          nameSkills={["Next Js", "Chakra UI"]}
+          gitLink={"https://github.com/gaurav-sunthwal/next-js-gaurav-sunthwal-portfolio"}
+        />
+        <ProjectCard
+          LogoImg={
             "https://generate-readme.vercel.app/_next/image?url=%2F_next%2Fstatic%2Fmedia%2FGR.3f54d9a7.jpeg&w=128&q=75"
           }
           projectName={"Generate Readme"}
@@ -75,6 +97,8 @@ export default function Projects() {
             I've utilized the awesome capabilities of Next.js and Chakra UI to craft a dynamic and visually stunning GitHub profile readme. With Next.js providing powerful server-side rendering and Chakra UI offering a sleek and customizable component library, this project promises to enhance the presentation of my GitHub profile.
             `}
           projectLink={"https://generate-readme.vercel.app/"}
+          nameSkills={["Next Js", "Chakra UI"]}
+          gitLink={"https://github.com/gaurav-sunthwal/make-git-beautiful"}
         />
         <ProjectCard
           projectName={"LEGITLY"}
@@ -85,6 +109,8 @@ export default function Projects() {
           company={"Hackathon Project"}
           imgSrc={legitly}
           projectLink={"https://legitly.yashraj.eu.org/"}
+          nameSkills={["Next Js", "Chakra UI", "Node Js"]}
+          gitLink={"https://github.com/yashraj-n/legitly"}
         />
       </HStack>
     </>
@@ -124,6 +150,9 @@ function ProjectCard({
   discription,
   imgSrc,
   projectLink,
+  maxLength = 190,
+  nameSkills = [],
+  gitLink,
 }) {
   const [isLargerThan] = useMediaQuery("(min-width: 1000px)");
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -136,6 +165,24 @@ function ProjectCard({
 
   const toggleLike = () => {
     setLike(!like);
+  };
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
+  // Function to toggle the expansion state
+  const toggleExpansion = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  // Render the content based on the expansion state
+  const renderContent = () => {
+    if (isExpanded) {
+      return discription; // Render full content if expanded
+    } else {
+      return (
+        discription.slice(0, maxLength) +
+        (discription.length > maxLength ? "..." : "")
+      ); // Render truncated content with ellipsis
+    }
   };
   return (
     <>
@@ -152,7 +199,13 @@ function ProjectCard({
                   <Avatar name={projectName} src={LogoImg} />
 
                   <Box>
-                    <Heading size="sm">{projectName}</Heading>
+                    <Heading size="sm">
+                      <Link href={`${gitLink}`} target="blank">
+                        <HStack>
+                          <Box>{projectName}</Box> {<FaGithub />}
+                        </HStack>
+                      </Link>
+                    </Heading>
                     <Text>
                       {Creator}, {company}
                     </Text>
@@ -166,31 +219,6 @@ function ProjectCard({
                   icon={<IoEyeSharp />}
                   ref={btnRef}
                 />
-
-                {/* <Modal onClose={onClose} isOpen={isOpen} isCentered>
-                  <ModalOverlay />
-                  <ModalContent color={"white"} bg={"black"} w={"200%"}>
-                    <ModalHeader>{projectName}</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody w={"100%"}>
-                      <iframe
-                        src={projectLink}
-                        title="Website Preview"
-                        width="100%"
-                        height="400"
-                      ></iframe>
-                    </ModalBody>
-
-                    <ModalFooter>
-                      <Button colorScheme="blue" mr={3} onClick={onClose}>
-                        Close
-                      </Button>
-                      <Link href={projectLink}>
-                        <Button colorScheme={"purple"}>Open</Button>
-                      </Link>
-                    </ModalFooter>
-                  </ModalContent>
-                </Modal> */}
 
                 <Drawer
                   isOpen={isOpen}
@@ -226,9 +254,30 @@ function ProjectCard({
               </Flex>
             </CardHeader>
             <CardBody>
-              <Text h={"180px"} overflow={"auto"}>
-                {discription}
-              </Text>
+              <Box h={"180px"} overflow={"auto"}>
+                <Box p={2}>
+                  <Text>
+                    {renderContent()}
+                    {discription.length > maxLength && (
+                      <button fontWeight={"400px"} onClick={toggleExpansion}>
+                        <b>{isExpanded ? "Read Less" : "Read More"}</b>
+                      </button>
+                    )}
+                  </Text>
+                  {/* SKILL TAG */}
+                </Box>
+                <Box p={2}>
+                  <HStack flexWrap={"wrap"}>
+                    {nameSkills.map((item) => {
+                      return (
+                        <>
+                          <SkillTag key={item} skillName={item} />
+                        </>
+                      );
+                    })}
+                  </HStack>
+                </Box>
+              </Box>
             </CardBody>
             <Image objectFit="cover" src={imgSrc} alt="Chakra UI" />
 
@@ -288,6 +337,26 @@ function ProjectCard({
             </CardFooter>
           </Card>
         </Box>
+      </motion.div>
+    </>
+  );
+}
+
+function SkillTag({ skillName }) {
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: false }}
+      >
+        <motion.button whileHover={{ scale: 1.0 }} whileTap={{ scale: 1.1 }}>
+          <Box w={"auto"} h={"2"} m={0}>
+            <Card bg={"#f5d0fe"} p={2}>
+              {skillName}
+            </Card>
+          </Box>
+        </motion.button>
       </motion.div>
     </>
   );
