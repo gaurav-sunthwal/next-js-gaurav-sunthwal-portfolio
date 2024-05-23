@@ -87,7 +87,7 @@ export default function Resume() {
                     <Text>
                       <FaDownload />
                     </Text>
-                    <Text> Downlode</Text>
+                    <Text> Download</Text>
                   </HStack>
                 </Button>
               </a>
