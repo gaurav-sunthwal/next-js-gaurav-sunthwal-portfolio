@@ -38,25 +38,30 @@ function Info() {
                 position={"relative"}
                 // left={isLargerThan ? "0%" : "60%"}
               >
-                <Image
-                  w={isLargerThan ? "120px" : "100%"}
-                  borderRadius={"50%"}
-                  src={myImg.src}
-                  alt="My Image"
-                />
+                <HStack>
+                  <Image
+                    w={isLargerThan ? "180px" : "100%"}
+                    borderRadius={"50%"}
+                    src={myImg.src}
+                    alt="My Image"
+                  />
+                </HStack>
               </Box>
               <Box maxW={isLargerThan ? "50%" : "100%"}>
                 <Text
                   className="info"
-                  fontSize={"25px"}
+                  fontSize={"20px"}
                   fontWeight={400}
                   color={"#F4E7D4"}
                 >
-                  Passionate Computer Science student at MIT-WPU, adept in web
-                  development ( NextJs , ReactJS, HTML, CSS, Node.js , MongoDB
-                  ). Eager to learn, innovate, and collaborate for impactful
-                  tech solutions. Lets connect and explore the exciting
-                  possibilities! 🚀
+                  I am a passionate Computer Science student at MIT-WPU,
+                  specializing in web and app development. My technical toolkit
+                  includes Next.js, ReactJS, HTML, CSS, Node.js, and MongoDB for
+                  web development, and React Native for app development. With a
+                  strong commitment to continuous learning and innovation, I am
+                  eager to collaborate on projects that drive impactful tech
+                  solutions. Let’s connect and explore the exciting
+                  possibilities together! 🚀
                 </Text>
               </Box>
             </HStack>

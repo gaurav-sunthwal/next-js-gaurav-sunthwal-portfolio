@@ -6,6 +6,7 @@ import Image from "next/image";
 import ContactImg from "/src/assets/Img/contact.svg";
 import downlode from "/src/assets/Img/downlode.gif";
 import imagination from "/src/assets/Img/imagination.gif";
+// import resume from "/src/assets/Img/imagination.gif";
 import {
   FaDownload,
   FaGithub,
@@ -71,7 +72,7 @@ export default function Resume() {
               />
             </HStack>
             <HStack justifyContent={"center"} w={"100%"}>
-              <a href="https://internshala.com/download/resume" download>
+              <a href="https://drive.google.com/file/d/1x6VgKajh6xmxVvC28DBApFTArriTVwKj/view?usp=sharing" target="_blank" download>
                 <Button
                   m={5}
                   w={isLargerThan ? "300px" : "100%"}
