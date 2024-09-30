@@ -18,6 +18,7 @@ import {
 import fullstack from "/src/assets/ServicesImg/fullstack.png";
 import backend from "/src/assets/ServicesImg/backend.png";
 import frontend from "/src/assets/ServicesImg/frontend.png";
+import reactNative from "/src/assets/ServicesImg/frontend.png"; // Add this import
 import path from "path";
 import { Url } from "next/dist/shared/lib/router/router";
 
@@ -60,6 +61,13 @@ function Services() {
             "I specialize in front-end development using cutting-edge technologies like React.js and Next.js. From crafting responsive user interfaces to implementing interactive features, I create engaging web experiences that captivate users and drive results. With a keen eye for design and a focus on usability, I ensure that your website not only looks stunning but also delivers an exceptional user experience across devices."
           }
         />
+        <ServicesCard
+          imgUrl={reactNative}
+          title={"Mobile App Development"}
+          description={
+            "I specialize in creating cross-platform mobile applications using React Native. From concept to deployment, I develop high-performance, native-like apps that work seamlessly on both iOS and Android platforms. With a focus on user experience and efficient code, I deliver mobile solutions that are both visually appealing and functionally robust, helping you reach your target audience on their preferred devices."
+          }
+        />
       </HStack>
     </VStack>
   );
@@ -74,17 +82,29 @@ function ServicesCard({ imgUrl, title, description }: ServicesCardProps) {
         whileInView={{ opacity: 1 }}
         viewport={{ once: false }}
       >
-        <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Box p={3} m={isLargerThan ? 4 : 2}>
-            <Card maxW={"sm"} h={isLargerThan ? "700px" : "auto"} bg={"#171717"} color={"white"}>
+            <Card 
+              maxW={"sm"} 
+              h={isLargerThan ? "700px" : "auto"} 
+              bg={"#171717"} 
+              color={"white"}
+              boxShadow="0 4px 6px rgba(0, 0, 0, 0.1)"
+              borderRadius="lg"
+              transition="all 0.3s ease-in-out"
+              _hover={{
+                transform: "translateY(-5px)",
+                boxShadow: "0 6px 8px rgba(0, 0, 0, 0.15)",
+              }}
+            >
               <CardBody>
                 <Image
                   src={imgUrl}
-                  alt="Green double couch with wooden legs"
+                  alt={`${title} illustration`}
                   sizes="lg"
                 />
                 <Stack mt="6" spacing="3">
-                  <Heading size="md">{title}</Heading>
+                  <Heading size="md" color="teal.300">{title}</Heading>
                   <Text>{description}</Text>
                 </Stack>
               </CardBody>

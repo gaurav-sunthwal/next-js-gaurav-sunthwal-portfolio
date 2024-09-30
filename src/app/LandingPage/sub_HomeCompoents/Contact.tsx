@@ -45,7 +45,7 @@ function Contact(): JSX.Element {
     if (form.current) {
       emailjs
         .sendForm(
-          "service_734aiqi",
+          "service_enfxyn2",
           "template_4r1j11q",
           form.current,
           "PCu8cBYWjJNRMZQG2"
