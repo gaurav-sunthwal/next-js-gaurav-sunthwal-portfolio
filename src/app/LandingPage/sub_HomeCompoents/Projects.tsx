@@ -5,6 +5,7 @@ import React from "react";
 
 import {
   Avatar,
+  Badge,
   Box,
   Button,
   Card,
@@ -52,6 +53,7 @@ import portfolioWebsite from "/src/assets/Img/project6.png";
 import genrateReadme from "/src/assets/Img/genrateReadme.png";
 import ecommers from "/src/assets/Img/ecommers.png";
 import legitly from "/src/assets/Img/legitly.png";
+import OMNISCIENT from "/src/assets/Img/OMNISCIENT.png";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -111,6 +113,17 @@ export default function Projects() {
           projectLink={"https://legitly.yashraj.eu.org/"}
           nameSkills={["Next Js", "Chakra UI", "Node Js"]}
           gitLink={"https://github.com/yashraj-n/legitly"}
+        />
+        <ProjectCard
+          projectName={"OMNISCIENT - TRL Level 5 Project"}
+          discription={`
+OMNISCIENT is a cutting-edge project that reached Technology Readiness Level (TRL) 5 and was successfully presented in the Smart India Hackathon (SIH) 2024 competition, where it was selected for further development. As the frontend developer, I utilized advanced frameworks like Aeternity UI, Chakra UI, and Next.js to create a seamless, responsive user interface, ensuring a robust and user-friendly experience. OMNISCIENT showcases innovation in real-world applications, offering a glimpse into the future of smart, scalable solutions.          `}
+          Creator={"Gaurav and Team"}
+          company={"Hackathon Project"}
+          imgSrc={OMNISCIENT}
+          projectLink={"http://vps.yashraj.eu.org:8001/home/"}
+          nameSkills={["Next Js", "Chakra UI", "Aceternity UI" ,  "LAMA AI" ,  "Python"]}
+          gitLink={"https://github.com/gaurav-sunthwal/OMNISCIENT.git"}
         />
       </HStack>
     </>
@@ -351,10 +364,10 @@ function SkillTag({ skillName }) {
         viewport={{ once: false }}
       >
         <motion.button whileHover={{ scale: 1.0 }} whileTap={{ scale: 1.1 }}>
-          <Box w={"auto"} h={"2"} m={0}>
-            <Card bg={"#f5d0fe"} p={2}>
+          <Box w={"auto"} h={"2"} m={1}>
+            <Badge colorScheme={"solid"} p={2}>
               {skillName}
-            </Card>
+            </Badge>
           </Box>
         </motion.button>
       </motion.div>
