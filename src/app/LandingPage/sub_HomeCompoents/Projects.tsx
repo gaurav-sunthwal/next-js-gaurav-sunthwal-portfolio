@@ -365,7 +365,7 @@ function SkillTag({ skillName }) {
       >
         <motion.button whileHover={{ scale: 1.0 }} whileTap={{ scale: 1.1 }}>
           <Box w={"auto"} h={"2"} m={1}>
-            <Badge colorScheme={"solid"} p={2}>
+            <Badge colorScheme="purple" p={2} borderRadius={4}>
               {skillName}
             </Badge>
           </Box>
