@@ -1,6 +1,6 @@
 //@ts-nocheck
 "use client";
-import { Box, HStack, Heading, VStack, useMediaQuery } from "@chakra-ui/react";
+import { Box, Divider, HStack, Heading, VStack, useMediaQuery } from "@chakra-ui/react";
 import codingImg from "/src/assets/Img/image.png";
 import ReactImg from "/src/assets/Img/Skills/react.png";
 import tailwind from "/src/assets/Img/Skills/tailwind.png";
@@ -26,9 +26,11 @@ function Skills() {
   return (
     <div>
       <VStack
-        h={isLargerThan ? "100vh" : "auto"}
+        h={isLargerThan ? "120vh" : "auto"}
+        overflow={"auto"}
         justifyContent="center"
         w="100%"
+        mb={5}
       >
         <Title title="My Skills" />
 
@@ -74,6 +76,7 @@ function Skills() {
           </Box>
         </HStack>
       </VStack>
+      {/* <Divider/> */}
     </div>
   );
 }
@@ -86,7 +89,7 @@ function SkillIcons({ imgUrl, skillName }: SkillIconsProps) {
           <Box p={2} h="120px" alignItems="center">
             <Image width={100} height={100} src={imgUrl} alt={skillName} />
           </Box>
-          <Heading size="md" m={3}>
+          <Heading size="md" m={2}>
             {skillName}
           </Heading>
         </motion.button>

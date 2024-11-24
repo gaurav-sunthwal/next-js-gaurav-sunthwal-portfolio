@@ -54,6 +54,7 @@ import genrateReadme from "/src/assets/Img/genrateReadme.png";
 import ecommers from "/src/assets/Img/ecommers.png";
 import legitly from "/src/assets/Img/legitly.png";
 import OMNISCIENT from "/src/assets/Img/OMNISCIENT.png";
+import aimockinterview from "/src/assets/Img/aimockinterview.png";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -76,6 +77,31 @@ export default function Projects() {
           LogoImg={
             "https://gaurav-sunthwal.vercel.app/_next/static/media/me.9e81b52f.jpg"
           }
+          projectName={"AI Mock Interview App"}
+          company={"Personal Project"}
+          Creator={"Gaurav Sunthwal"}
+          imgSrc={aimockinterview}
+          discription={`
+           Built and deployed a full-stack AI mock interview app using Next.js, React, Drizzle ORM,
+Gemini AI, and Clerk.
+Integrated AI-driven mock interview functionality for a realistic, interactive interview experience.
+Enhanced user experience with a clean, intuitive interface, helping developers improve their skills.
+            `}
+          projectLink={"https://mockinterviewai.vercel.app/"}
+          nameSkills={[
+            "Next Js",
+            "Chakra UI",
+            "Drizzle ORM",
+            "Gemini AI",
+            "Clerk ",
+          ]}
+          gitLink={"https://github.com/gaurav-sunthwal/ai-mock-interview"}
+        />
+
+        <ProjectCard
+          LogoImg={
+            "https://gaurav-sunthwal.vercel.app/_next/static/media/me.9e81b52f.jpg"
+          }
           projectName={"Portfolio Website"}
           company={"Learning Projects"}
           Creator={"Gaurav Sunthwal"}
@@ -85,7 +111,9 @@ export default function Projects() {
             `}
           projectLink={"https://gaurav-sunthwal.vercel.app/"}
           nameSkills={["Next Js", "Chakra UI"]}
-          gitLink={"https://github.com/gaurav-sunthwal/next-js-gaurav-sunthwal-portfolio"}
+          gitLink={
+            "https://github.com/gaurav-sunthwal/next-js-gaurav-sunthwal-portfolio"
+          }
         />
         <ProjectCard
           LogoImg={
@@ -122,7 +150,13 @@ OMNISCIENT is a cutting-edge project that reached Technology Readiness Level (TR
           company={"Hackathon Project"}
           imgSrc={OMNISCIENT}
           projectLink={"http://vps.yashraj.eu.org:8001/home/"}
-          nameSkills={["Next Js", "Chakra UI", "Aceternity UI" ,  "LAMA AI" ,  "Python"]}
+          nameSkills={[
+            "Next Js",
+            "Chakra UI",
+            "Aceternity UI",
+            "LAMA AI",
+            "Python",
+          ]}
           gitLink={"https://github.com/gaurav-sunthwal/OMNISCIENT.git"}
         />
       </HStack>
@@ -205,7 +239,7 @@ function ProjectCard({
         viewport={{ once: false }}
       >
         <Box p={1} m={isLargerThan ? 1 : 2}>
-          <Card maxW="md">
+          <Card maxW="sm">
             <CardHeader>
               <Flex spacing="4">
                 <Flex flex="1" gap="4" alignItems="center" flexWrap="wrap">
