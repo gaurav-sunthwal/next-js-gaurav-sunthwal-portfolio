@@ -16,11 +16,11 @@ function Info() {
   const [isLargerThan] = useMediaQuery("(min-width: 1000px)");
   return (
     <div>
-      <VStack m={5}>
+      <VStack m={5} p={2}>
         <HStack justify={"space-evenly"} color={"#F4E7D4"} flexWrap={"wrap"}>
           <VStack>
             <Heading
-              fontSize={isLargerThan ? "124px" : "52px"}
+              fontSize={isLargerThan ? "8rem" : "4rem"}
               color={"#F4E7D4"}
             >
               Designing emotional digital experiences that people love
