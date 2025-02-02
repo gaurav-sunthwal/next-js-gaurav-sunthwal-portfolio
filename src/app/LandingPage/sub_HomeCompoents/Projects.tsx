@@ -73,6 +73,7 @@ export default function Projects() {
         flexWrap={"wrap"}
         w={"100%"}
       >
+        {/* AI Mock Interview App */}
         <ProjectCard
           LogoImg={
             "https://gaurav-sunthwal.vercel.app/_next/static/media/me.9e81b52f.jpg"
@@ -98,6 +99,7 @@ Enhanced user experience with a clean, intuitive interface, helping developers i
           gitLink={"https://github.com/gaurav-sunthwal/ai-mock-interview"}
         />
 
+        {/* Portfolio Website */}
         <ProjectCard
           LogoImg={
             "https://gaurav-sunthwal.vercel.app/_next/static/media/me.9e81b52f.jpg"
@@ -115,6 +117,8 @@ Enhanced user experience with a clean, intuitive interface, helping developers i
             "https://github.com/gaurav-sunthwal/next-js-gaurav-sunthwal-portfolio"
           }
         />
+
+        {/* Generate Readme */}
         <ProjectCard
           LogoImg={
             "https://generate-readme.vercel.app/_next/image?url=%2F_next%2Fstatic%2Fmedia%2FGR.3f54d9a7.jpeg&w=128&q=75"
@@ -130,18 +134,32 @@ Enhanced user experience with a clean, intuitive interface, helping developers i
           nameSkills={["Next Js", "Chakra UI"]}
           gitLink={"https://github.com/gaurav-sunthwal/make-git-beautiful"}
         />
-        <ProjectCard
-          projectName={"LEGITLY"}
+
+ {/* Astitva */}
+ <ProjectCard
+          projectName={"Astitva"}
           discription={`
-          LEGITLY is a PDF verification platform developed during the Hack MIT hackathon project. As a frontend developer, I utilized Next.js and Chakra UI to create a seamless user experience. LEGITLY ensures document integrity through advanced algorithms, providing instant verification results and a user-friendly dashboard. It's a convenient solution for individuals and organizations seeking trust in their digital documents.
+         🖼 Astitva is an AI-driven platform that transforms images into captivating stories, heartfelt poems, and creative captions.
           `}
           Creator={"Gaurav and Team"}
           company={"Hackathon Project"}
           imgSrc={legitly}
-          projectLink={"https://legitly.yashraj.eu.org/"}
-          nameSkills={["Next Js", "Chakra UI", "Node Js"]}
-          gitLink={"https://github.com/yashraj-n/legitly"}
+          projectLink={"https://astitva-frontend.yashrajn.com/"}
+          nameSkills={[
+            "Next Js",
+            "Shadcn UI",
+            "Python",
+            "WorqHat APIs",
+            "Tailwind CSS",
+            "Clerk",
+          ]}
+          gitLink={"https://github.com/gaurav-sunthwal/astitva-hackathon"}
         />
+
+      
+       
+
+        {/* OMNISCIENT */}
         <ProjectCard
           projectName={"OMNISCIENT - TRL Level 5 Project"}
           discription={`
@@ -159,6 +177,22 @@ OMNISCIENT is a cutting-edge project that reached Technology Readiness Level (TR
           ]}
           gitLink={"https://github.com/gaurav-sunthwal/OMNISCIENT.git"}
         />
+
+
+          {/* LEGITLY */}
+          <ProjectCard
+          projectName={"LEGITLY"}
+          discription={`
+          LEGITLY is a PDF verification platform developed during the Hack MIT hackathon project. As a frontend developer, I utilized Next.js and Chakra UI to create a seamless user experience. LEGITLY ensures document integrity through advanced algorithms, providing instant verification results and a user-friendly dashboard. It's a convenient solution for individuals and organizations seeking trust in their digital documents.
+          `}
+          Creator={"Gaurav and Team"}
+          company={"Hackathon Project"}
+          imgSrc={legitly}
+          projectLink={"https://legitly.yashraj.eu.org/"}
+          nameSkills={["Next Js", "Chakra UI", "Node Js"]}
+          gitLink={"https://github.com/yashraj-n/legitly"}
+        />
+
       </HStack>
     </>
   );
