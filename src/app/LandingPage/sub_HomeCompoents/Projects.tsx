@@ -54,7 +54,7 @@ import genrateReadme from "/src/assets/Img/genrateReadme.png";
 import ecommers from "/src/assets/Img/ecommers.png";
 import legitly from "/src/assets/Img/legitly.png";
 import OMNISCIENT from "/src/assets/Img/OMNISCIENT.png";
-import astitva from "/src/assets/Img/astitva.jpeg";
+import astitva from "@/assets/Img/Astitva.jpeg";
 import aimockinterview from "/src/assets/Img/aimockinterview.png";
 import Image from "next/image";
 import { motion } from "framer-motion";
