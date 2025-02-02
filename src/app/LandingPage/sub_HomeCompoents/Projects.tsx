@@ -54,6 +54,7 @@ import genrateReadme from "/src/assets/Img/genrateReadme.png";
 import ecommers from "/src/assets/Img/ecommers.png";
 import legitly from "/src/assets/Img/legitly.png";
 import OMNISCIENT from "/src/assets/Img/OMNISCIENT.png";
+import astitva from "/src/assets/Img/astitva.jpeg";
 import aimockinterview from "/src/assets/Img/aimockinterview.png";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -143,7 +144,7 @@ Enhanced user experience with a clean, intuitive interface, helping developers i
           `}
           Creator={"Gaurav and Team"}
           company={"Hackathon Project"}
-          imgSrc={legitly}
+          imgSrc={astitva}
           projectLink={"https://astitva-frontend.yashrajn.com/"}
           nameSkills={[
             "Next Js",
