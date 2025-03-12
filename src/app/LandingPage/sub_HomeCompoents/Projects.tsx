@@ -54,6 +54,7 @@ import genrateReadme from "/src/assets/Img/genrateReadme.png";
 import ecommers from "/src/assets/Img/ecommers.png";
 import legitly from "/src/assets/Img/legitly.png";
 import OMNISCIENT from "/src/assets/Img/OMNISCIENT.png";
+import CourseCrafterAI from "/src/assets/Img/project7.png";
 import astitva from "@/assets/Img/Astitva.jpeg";
 import aimockinterview from "/src/assets/Img/aimockinterview.png";
 import Image from "next/image";
@@ -99,6 +100,27 @@ Enhanced user experience with a clean, intuitive interface, helping developers i
           ]}
           gitLink={"https://github.com/gaurav-sunthwal/ai-mock-interview"}
         />
+        <ProjectCard
+          LogoImg={
+            "https://gaurav-sunthwal.vercel.app/_next/static/media/me.9e81b52f.jpg"
+          }
+          projectName={"CourseCrafter AI"}
+          company={"Personal Project"}
+          Creator={"Gaurav Sunthwal"}
+          imgSrc={CourseCrafterAI}
+          discription={`
+          CourseCrafter AI is an innovative platform that generates AI-powered courses instantly, making learning seamless and accessible. Whether you're exploring new technologies or sharpening your skills, CourseCrafter AI delivers structured learning modules with just one click. Built with Next.js, PostgreSQL, shadcn/ui, and Gemini API, it offers a smooth user experience and intelligent course creation.
+            `}
+          projectLink={"https://coursegenerator-ai.vercel.app/"}
+          nameSkills={[
+            "Next Js",
+            "Chakra UI",
+            "Drizzle ORM",
+            "Gemini AI",
+            "Clerk ",
+          ]}
+          gitLink={"https://github.com/gaurav-sunthwal/course-generator"}
+        />
 
         {/* Portfolio Website */}
         <ProjectCard
@@ -136,8 +158,8 @@ Enhanced user experience with a clean, intuitive interface, helping developers i
           gitLink={"https://github.com/gaurav-sunthwal/make-git-beautiful"}
         />
 
- {/* Astitva */}
- <ProjectCard
+        {/* Astitva */}
+        <ProjectCard
           projectName={"Astitva"}
           discription={`
          🖼 Astitva is an AI-driven platform that transforms images into captivating stories, heartfelt poems, and creative captions.
@@ -156,9 +178,6 @@ Enhanced user experience with a clean, intuitive interface, helping developers i
           ]}
           gitLink={"https://github.com/gaurav-sunthwal/astitva-hackathon"}
         />
-
-      
-       
 
         {/* OMNISCIENT */}
         <ProjectCard
@@ -179,9 +198,8 @@ OMNISCIENT is a cutting-edge project that reached Technology Readiness Level (TR
           gitLink={"https://github.com/gaurav-sunthwal/OMNISCIENT.git"}
         />
 
-
-          {/* LEGITLY */}
-          <ProjectCard
+        {/* LEGITLY */}
+        <ProjectCard
           projectName={"LEGITLY"}
           discription={`
           LEGITLY is a PDF verification platform developed during the Hack MIT hackathon project. As a frontend developer, I utilized Next.js and Chakra UI to create a seamless user experience. LEGITLY ensures document integrity through advanced algorithms, providing instant verification results and a user-friendly dashboard. It's a convenient solution for individuals and organizations seeking trust in their digital documents.
@@ -193,7 +211,6 @@ OMNISCIENT is a cutting-edge project that reached Technology Readiness Level (TR
           nameSkills={["Next Js", "Chakra UI", "Node Js"]}
           gitLink={"https://github.com/yashraj-n/legitly"}
         />
-
       </HStack>
     </>
   );
