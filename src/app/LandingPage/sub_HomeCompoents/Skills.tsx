@@ -106,7 +106,7 @@ const Skills = () => {
             {/* Floating code snippets */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              // animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ delay: 0.4, duration: 0.6 }}
               className="absolute -top-6 -right-6 bg-slate-800 p-3 rounded-lg shadow-xl border border-slate-700 hidden md:block"
             >
@@ -127,7 +127,7 @@ const Skills = () => {
           <motion.div
             variants={containerVariants}
             initial="hidden"
-            animate={inView ? "visible" : "hidden"}
+            animate={inView ? "visible" : isMobile ? "visible" : "hidden"} 
             className={`${isMobile ? "w-full" : "lg:w-1/2"}`}
           >
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4">
