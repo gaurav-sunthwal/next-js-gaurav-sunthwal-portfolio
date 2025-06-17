@@ -14,10 +14,11 @@ import {
   useMediaQuery,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
-import emailjs from "@emailjs/browser";
+import { useForm, ValidationError } from '@formspree/react';
 import { useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import Title from "@/app/Components/Title";
+
 interface FormElementProps {
   label: string;
   type: string;
@@ -28,47 +29,47 @@ interface FormElementProps {
 
 interface SocialCardProps {
   link: string;
-  icon: React.ReactNode; // Adjust type as per your icon component
+  icon: React.ReactNode;
 }
 
 function Contact(): JSX.Element {
   const [isLargerThan] = useMediaQuery("(min-width: 1000px)");
+  
+  // Formspree hook
+  const [state, handleSubmit] = useForm("mblykjrr");
 
-  const form = useRef<HTMLFormElement>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [ShowContact, setShowContact] = useState(true);
 
-  const sendEmail = (e: React.FormEvent<HTMLFormElement>) => {
+  // Handle form submission
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Create FormData object
+    const formData = new FormData();
+    formData.append('from_name', name);
+    formData.append('user_email', email);
+    formData.append('message', message);
 
-    if (form.current) {
-      emailjs
-        .sendForm(
-          "service_enfxyn2",
-          "template_4r1j11q",
-          form.current,
-          "PCu8cBYWjJNRMZQG2"
-        )
-        .then(
-          (result) => {
-            toast.success("Successfully Received!");
-
-      
-          },
-          (error) => {
-            toast(error.text);
-          }
-        );
-      e.currentTarget.reset();
-    } else {
-      console.error("Form ref is null");
+    // Submit using Formspree
+    const result = await handleSubmit(formData);
+    
+    // Show success message and reset form if successful
+    if (state.succeeded) {
+      toast.success("Successfully Received!");
+      setName("");
+      setEmail("");
+      setMessage("");
+      setShowContact(false);
+    } else if (state.errors && Object.keys(state.errors).length > 0) {
+      toast.error("Something went wrong. Please try again.");
     }
   };
 
   const handalClick = () => {
-    
-    // setShowContact(false);
+    // Additional click handler if needed
   };
 
   return (
@@ -90,7 +91,7 @@ function Contact(): JSX.Element {
                 justifyContent={isLargerThan ? "center" : "normal"}
               >
                 <Box maxW={"100%"} w={isLargerThan ? "60%" : "100%"}>
-                  <form ref={form} onSubmit={sendEmail}>
+                  <form onSubmit={onSubmit}>
                     <FormElement
                       label={"Enter Name"}
                       type={"text"}
@@ -98,6 +99,12 @@ function Contact(): JSX.Element {
                       onChange={(e) => setName(e.target.value)}
                       nameId={"from_name"}
                     />
+                    <ValidationError 
+                      prefix="Name" 
+                      field="from_name"
+                      errors={state.errors}
+                    />
+                    
                     <FormElement
                       label={"Enter Email"}
                       type={"email"}
@@ -105,6 +112,12 @@ function Contact(): JSX.Element {
                       onChange={(e) => setEmail(e.target.value)}
                       nameId={"user_email"}
                     />
+                    <ValidationError 
+                      prefix="Email" 
+                      field="user_email"
+                      errors={state.errors}
+                    />
+                    
                     <Box m={3}>
                       <FormControl>
                         <FormLabel>Message</FormLabel>
@@ -112,15 +125,26 @@ function Contact(): JSX.Element {
                           rows={isLargerThan ? 10 : 7}
                           required
                           name="message"
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value)}
                         />
                       </FormControl>
                     </Box>
+                    <ValidationError 
+                      prefix="Message" 
+                      field="message"
+                      errors={state.errors}
+                    />
+                    
                     <VStack p={3}>
                       <Button
                         type="submit"
                         m={3}
                         w={"60%"}
                         onClick={handalClick}
+                        isLoading={state.submitting}
+                        loadingText="Submitting..."
+                        disabled={state.submitting}
                       >
                         Submit
                       </Button>
@@ -134,7 +158,14 @@ function Contact(): JSX.Element {
       ) : (
         <>
           <VStack h={"100vh"} justifyContent={"center"}>
-            <Heading>Thanks for Submiting The form</Heading>
+            <Heading>Thanks for Submitting The form</Heading>
+            <Button
+              mt={4}
+              onClick={() => setShowContact(true)}
+              colorScheme="blue"
+            >
+              Submit Another Form
+            </Button>
           </VStack>
         </>
       )}
