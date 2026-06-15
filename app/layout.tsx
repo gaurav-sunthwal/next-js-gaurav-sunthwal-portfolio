@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Gaurav Sunthwal — Full Stack & App Developer Portfolio",
     description: "Professional software engineering portfolio of Gaurav Sunthwal. Specializing in Next.js web applications, React Native mobile apps, and Generative AI integrations.",
-    url: "https://gaurav-sunthwal.vercel.app",
+    url: "https://gauravsunthwal.vercel.app",
     siteName: "Gaurav Sunthwal Portfolio",
     locale: "en_US",
     type: "profile",

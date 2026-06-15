@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://gaurav-sunthwal.vercel.app"; // Default production domain fallback
+  const baseUrl = "https://gauravsunthwal.vercel.app"; // Default production domain fallback
   return [
     {
       url: baseUrl,

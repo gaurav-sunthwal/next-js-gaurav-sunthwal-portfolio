@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/admin", "/api/"],
     },
-    sitemap: "https://gaurav-sunthwal.vercel.app/sitemap.xml",
+    sitemap: "https://gauravsunthwal.vercel.app/sitemap.xml",
   };
 }
