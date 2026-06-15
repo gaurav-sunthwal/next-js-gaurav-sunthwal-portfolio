@@ -45,6 +45,9 @@ export const metadata: Metadata = {
     title: "Gaurav Sunthwal — Full Stack & App Developer Portfolio",
     description: "Specializing in high-performance Next.js web applications, React Native mobile apps, and Generative AI integrations."
   },
+  verification: {
+    google: "4S-SnEkKgabU7Yr4avzDYY7XrbS0BRFh9hpZA8P6uLk",
+  },
   robots: {
     index: true,
     follow: true,
