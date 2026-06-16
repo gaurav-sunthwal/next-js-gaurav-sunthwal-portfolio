@@ -97,7 +97,7 @@ export default function ProjectsPage() {
               </div>
               <div className="p-8 flex flex-col flex-grow">
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tags.map((tag) => {
+                  {project.tags.slice(0, 4).map((tag) => {
                     const isAi = tag.toLowerCase().includes("ai") || tag.toLowerCase().includes("gen");
                     return (
                       <Chip
@@ -113,6 +113,15 @@ export default function ProjectsPage() {
                       </Chip>
                     );
                   })}
+                  {project.tags.length > 4 && (
+                    <Chip
+                      key="more-tags"
+                      active={false}
+                      className="px-3 py-1 rounded-full font-label-sm text-label-sm border-none pointer-events-none bg-surface-container-low text-on-surface-variant/80"
+                    >
+                      + {project.tags.length - 4} More
+                    </Chip>
+                  )}
                 </div>
                 <h2 className="font-headline-lg text-headline-lg mb-3 tracking-tight">{project.title}</h2>
                 <p className="font-body-md text-body-md text-on-surface-variant mb-6 flex-grow leading-relaxed">

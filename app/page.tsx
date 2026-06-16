@@ -280,10 +280,11 @@ export default function Home() {
                   <div
                     key={project.id}
                     onClick={() => setSelectedProject(project)}
-                    className={`flex flex-col lg:flex-row gap-12 items-center group cursor-pointer ${isEven ? "" : "lg:flex-row-reverse"
-                      }`}
+                    className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center group cursor-pointer"
                   >
-                    <div className="flex-1 w-full aspect-[16/10] bg-surface-container rounded-3xl overflow-hidden airbnb-shadow-hover border border-outline-variant/30">
+                    <div className={`w-full aspect-[16/10] bg-surface-container rounded-3xl overflow-hidden airbnb-shadow-hover border border-outline-variant/30 ${
+                      isEven ? "lg:order-1" : "lg:order-2"
+                    }`}>
                       <img
                         alt={project.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -291,9 +292,9 @@ export default function Home() {
                         loading="lazy"
                       />
                     </div>
-                    <div className="flex-1 space-y-6">
-                      <div className="flex items-center gap-3">
-                        {project.tags.map((tag) => (
+                    <div className={`space-y-6 ${isEven ? "lg:order-2" : "lg:order-1"}`}>
+                      <div className="flex flex-wrap items-center gap-3">
+                        {project.tags.slice(0, 4).map((tag) => (
                           <Chip
                             key={tag}
                             active={true}
@@ -302,6 +303,15 @@ export default function Home() {
                             {tag}
                           </Chip>
                         ))}
+                        {project.tags.length > 4 && (
+                          <Chip
+                            key="more-tags"
+                            active={false}
+                            className="px-3 py-1 text-xs font-bold rounded-full uppercase border-none pointer-events-none bg-surface-container-low text-on-surface-variant/80"
+                          >
+                            + {project.tags.length - 4} More
+                          </Chip>
+                        )}
                       </div>
                       <h3 className="text-3xl md:text-4xl font-bold tracking-tighter">{project.title}</h3>
                       <p className="text-on-surface-variant text-lg leading-relaxed">{project.description}</p>
