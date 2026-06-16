@@ -21,7 +21,7 @@ export default function ProjectsPage() {
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        const res = await fetch("/api/projects");
+        const res = await fetch("/api/projects", { cache: "no-store" });
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setProjectsList(data);

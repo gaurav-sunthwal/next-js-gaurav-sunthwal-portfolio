@@ -1,7 +1,7 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import bcrypt from "bcryptjs";
 import {
   projects,
   experiences,
@@ -11,12 +11,11 @@ import {
   testimonials,
   aiSpecialization,
   databases,
-  users,
 } from "./schema";
 
 const connectionString =
   process.env.DATABASE_URL ||
-  "postgresql://postgres:YVE4fgOC7fiBjNBg@db.yzzsadplqfgisftryvkq.supabase.co:5432/postgres";
+  "postgresql://neondb_owner:npg_4PAcYiOB0yGL@ep-restless-night-aij9gpij-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
 
 const client = postgres(connectionString, { prepare: false });
 const db = drizzle(client);
@@ -220,16 +219,6 @@ async function seed() {
   ]);
   console.log("  ✅ 4 testimonials inserted");
 
-  // --- Admin User ---
-  console.log("👤 Seeding default admin user...");
-  await db.delete(users);
-  const adminPasswordHash = await bcrypt.hash("admin", 10);
-  await db.insert(users).values({
-    username: "admin",
-    passwordHash: adminPasswordHash,
-  });
-  console.log("  ✅ Default admin user (username: 'admin', password: 'admin') seeded");
- 
   console.log("\n🎉 Seed complete! All data pushed to database.");
   process.exit(0);
 }

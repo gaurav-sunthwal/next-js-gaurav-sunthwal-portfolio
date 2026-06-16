@@ -24,10 +24,133 @@ import {
   TestimonialItem,
 } from "@/lib/data";
 
-type TabType = "overview" | "projects" | "experience" | "skills" | "reviews";
+type TabType = "overview" | "projects" | "experience" | "skills" | "reviews" | "users";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
+
+  // User creation states
+  const [regUsername, setRegUsername] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regMessage, setRegMessage] = useState("");
+  const [regError, setRegError] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  // User list states
+  const [usersList, setUsersList] = useState<{ id: number; username: string; createdAt: string }[]>([]);
+  const [editingUser, setEditingUser] = useState<{ id: number; username: string } | null>(null);
+  const [editUsername, setEditUsername] = useState("");
+  const [editPassword, setEditPassword] = useState("");
+  const [editError, setEditError] = useState("");
+  const [editMessage, setEditMessage] = useState("");
+  const [isEditingUser, setIsEditingUser] = useState(false);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch("/api/auth/users");
+      if (res.ok) {
+        const data = await res.json();
+        setUsersList(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+    }
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegError("");
+    setRegMessage("");
+    setIsRegistering(true);
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: regUsername, password: regPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setRegMessage("User created successfully!");
+        setRegUsername("");
+        setRegPassword("");
+        fetchUsers(); // Refresh list
+      } else {
+        setRegError(data.error || "Failed to create user");
+      }
+    } catch (err) {
+      setRegError("An error occurred. Please try again.");
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
+  const handleEditUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setEditError("");
+    setEditMessage("");
+    setIsEditingUser(true);
+
+    try {
+      const res = await fetch("/api/auth/users", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingUser.id,
+          username: editUsername,
+          password: editPassword || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEditMessage("User updated successfully!");
+        fetchUsers(); // Refresh list
+        setTimeout(() => {
+          setEditingUser(null);
+          setEditUsername("");
+          setEditPassword("");
+          setEditMessage("");
+        }, 1500);
+      } else {
+        setEditError(data.error || "Failed to update user");
+      }
+    } catch (err) {
+      setEditError("An error occurred. Please try again.");
+    } finally {
+      setIsEditingUser(false);
+    }
+  };
+
+  const handleDeleteUser = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this user?")) return;
+    try {
+      const res = await fetch(`/api/auth/users?id=${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        fetchUsers(); // Refresh list
+      } else {
+        alert(data.error || "Failed to delete user");
+      }
+    } catch (err) {
+      alert("An error occurred while deleting the user");
+    }
+  };
+  // Authentication states
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [authUsername, setAuthUsername] = useState("");
+  const [loginUser, setLoginUser] = useState("");
+  const [loginPass, setLoginPass] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (isAuthenticated && activeTab === "users") {
+      fetchUsers();
+    }
+  }, [isAuthenticated, activeTab]);
 
   // Local state representing database-synced data
   const [projects, setProjects] = useState<ProjectItem[]>([]);
@@ -44,17 +167,11 @@ export default function AdminPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [draggedProjectId, setDraggedProjectId] = useState<string | null>(null);
+  const [draggedScreenshotIdx, setDraggedScreenshotIdx] = useState<number | null>(null);
   const [resumeUrl, setResumeUrl] = useState("");
   const [isResumeUploading, setIsResumeUploading] = useState(false);
   const [resumeUploadProgress, setResumeUploadProgress] = useState(0);
-
-  // Authentication states
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [authUsername, setAuthUsername] = useState("");
-  const [loginUser, setLoginUser] = useState("");
-  const [loginPass, setLoginPass] = useState("");
-  const [authError, setAuthError] = useState("");
-  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [isLogoUploading, setIsLogoUploading] = useState(false);
 
   // Verify authentication on mount
   React.useEffect(() => {
@@ -241,11 +358,56 @@ export default function AdminPage() {
   const [tempTags, setTempTags] = useState("");
   const [tempTech, setTempTech] = useState("");
   const [tempBullets, setTempBullets] = useState("");
+  const [tempMediaUrl, setTempMediaUrl] = useState("");
 
   const resetTempStates = () => {
     setTempTags("");
     setTempTech("");
     setTempBullets("");
+    setTempMediaUrl("");
+  };
+
+  const handleAddMediaUrl = () => {
+    if (!tempMediaUrl.trim() || !editingProject) return;
+    const urls = tempMediaUrl
+      .split(/[,\n]/)
+      .map((url) => url.trim())
+      .filter(Boolean);
+
+    const currentScreenshots = [...(editingProject.screenshots || [])];
+    setEditingProject({
+      ...editingProject,
+      screenshots: [...currentScreenshots, ...urls],
+    });
+    setTempMediaUrl("");
+  };
+
+  const handleScreenshotDragStart = (e: React.DragEvent, index: number) => {
+    e.dataTransfer.setData("text/plain", index.toString());
+    setDraggedScreenshotIdx(index);
+  };
+
+  const handleScreenshotDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleScreenshotDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    const draggedIdxStr = e.dataTransfer.getData("text/plain");
+    const draggedIdx = draggedIdxStr !== "" ? parseInt(draggedIdxStr, 10) : draggedScreenshotIdx;
+    if (draggedIdx === null || draggedIdx === undefined || draggedIdx === targetIndex || isNaN(draggedIdx)) return;
+
+    if (!editingProject || !editingProject.screenshots) return;
+
+    const updatedScreenshots = [...editingProject.screenshots];
+    const [draggedItem] = updatedScreenshots.splice(draggedIdx, 1);
+    updatedScreenshots.splice(targetIndex, 0, draggedItem);
+
+    setEditingProject({
+      ...editingProject,
+      screenshots: updatedScreenshots,
+    });
+    setDraggedScreenshotIdx(null);
   };
 
   const handleProjectDragStart = (e: React.DragEvent, id: string) => {
@@ -391,6 +553,25 @@ export default function AdminPage() {
     setEditingProject({ ...editingProject, screenshots });
   };
 
+  const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0 || !editingProject) return;
+    const file = e.target.files[0];
+    
+    setIsLogoUploading(true);
+    try {
+      const url = await uploadFileWithProgress(file, () => {});
+      setEditingProject({
+        ...editingProject,
+        image: url,
+      });
+    } catch (err) {
+      console.error("Logo upload error:", err);
+      alert("Error uploading logo image");
+    } finally {
+      setIsLogoUploading(false);
+    }
+  };
+
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
@@ -472,7 +653,9 @@ export default function AdminPage() {
     if (!editingProject) return;
     setIsSaving(true);
 
-    const formattedTags = tempTags ? tempTags.split(",").map((t) => t.trim()).filter(Boolean) : editingProject.tags || [];
+    const formattedTags = tempTags 
+      ? tempTags.split(",").map((t) => t.replace(/['"]+/g, "").trim()).filter(Boolean) 
+      : (editingProject.tags || []).map((t) => t.replace(/['"]+/g, "").trim());
     
     // Manage demoUrl and githubUrl inside the links array
     const links = [...(editingProject.links || [])];
@@ -773,14 +956,15 @@ export default function AdminPage() {
 
         {/* Sidebar Tabs */}
         <nav className="flex flex-col gap-1.5 flex-grow">
-          {(["overview", "projects", "experience", "skills", "reviews"] as TabType[]).map((tab) => {
+          {(["overview", "projects", "experience", "skills", "reviews", "users"] as TabType[]).map((tab) => {
             let icon = "dashboard";
             if (tab === "projects") icon = "grid_view";
             if (tab === "experience") icon = "work";
             if (tab === "skills") icon = "terminal";
             if (tab === "reviews") icon = "forum";
+            if (tab === "users") icon = "group";
 
-            const label = tab === "skills" ? "Skills & Education" : tab;
+            const label = tab === "skills" ? "Skills & Education" : tab === "users" ? "User Management" : tab;
 
             return (
               <button
@@ -1001,12 +1185,17 @@ export default function AdminPage() {
                       <span className="text-xs font-semibold px-2.5 py-1 bg-primary/10 text-primary rounded-full uppercase">
                         {project.type}
                       </span>
-                      <div className="flex gap-1.5">
-                        {project.tags.map((t) => (
-                          <Chip key={t} active={false} className="py-0.5 px-2 text-[10px] cursor-default border-none bg-surface-container-low">
+                      <div className="flex flex-wrap gap-1.5 justify-end max-w-[70%]">
+                        {project.tags.slice(0, 3).map((t) => (
+                          <Chip key={t} active={false} className="py-0.5 px-2 text-[10px] cursor-default border-none bg-surface-container-low pointer-events-none">
                             {t}
                           </Chip>
                         ))}
+                        {project.tags.length > 3 && (
+                          <Chip key="more" active={false} className="py-0.5 px-2 text-[10px] cursor-default border-none bg-surface-container-low pointer-events-none">
+                            + {project.tags.length - 3}
+                          </Chip>
+                        )}
                       </div>
                     </div>
                     <h3 className="font-title-md text-title-md font-bold mb-2">{project.title}</h3>
@@ -1231,12 +1420,183 @@ export default function AdminPage() {
           </div>
         )}
 
+        {activeTab === "users" && (
+          <div className="space-y-8">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-on-surface">User Accounts</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              {/* Left Column: Users List */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-on-surface">Registered Users</h3>
+                <div className="bg-white border border-outline-variant/30 rounded-2xl divide-y divide-outline-variant/20 overflow-hidden shadow-sm">
+                  {usersList.map((usr) => (
+                    <div key={usr.id} className="p-4 flex items-center justify-between hover:bg-surface-container-lowest transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                          {usr.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm text-on-surface">{usr.username}</p>
+                          <p className="text-[10px] text-on-surface-variant">
+                            Created: {new Date(usr.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setEditingUser(usr);
+                            setEditUsername(usr.username);
+                            setEditPassword("");
+                          }}
+                          className="px-3 py-1.5 text-xs h-auto"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          onClick={() => handleDeleteUser(usr.id)}
+                          className="px-3 py-1.5 text-xs h-auto bg-red-500/10 text-red-600 border border-red-500/20 hover:bg-red-500 hover:text-white"
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Column: Create User Form */}
+              <Card interactive={false} className="p-8 border border-outline-variant/30 bg-surface-container-lowest shadow-sm rounded-2xl">
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold tracking-tight text-on-surface">Create New Admin User</h3>
+                  <p className="text-xs text-on-surface-variant mt-1">
+                    Add another administrator account to manage this portfolio.
+                  </p>
+                </div>
+                
+                <form onSubmit={handleCreateUser} className="space-y-6">
+                  {regError && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-xl text-xs font-semibold text-center">
+                      {regError}
+                    </div>
+                  )}
+                  {regMessage && (
+                    <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-600 rounded-xl text-xs font-semibold text-center">
+                      {regMessage}
+                    </div>
+                  )}
+                  
+                  <Input
+                    label="New Username"
+                    required
+                    value={regUsername}
+                    onChange={(e) => setRegUsername(e.target.value)}
+                    placeholder="e.g. gaurav"
+                  />
+                  
+                  <Input
+                    label="Password"
+                    required
+                    type="password"
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                  
+                  <Button
+                    type="submit"
+                    disabled={isRegistering}
+                    variant="primary"
+                    className="w-full py-4 h-auto rounded-xl font-semibold border-none flex justify-center items-center gap-2"
+                  >
+                    {isRegistering ? (
+                      <>
+                        <span className="material-symbols-outlined animate-spin text-sm">sync</span>
+                        <span>Creating User...</span>
+                      </>
+                    ) : (
+                      <span>Create User</span>
+                    )}
+                  </Button>
+                </form>
+              </Card>
+            </div>
+
+            {/* Edit User Modal */}
+            {editingUser && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+                <Card interactive={false} className="w-full max-w-md bg-surface-container-lowest p-8 border border-outline-variant/30 shadow-2xl rounded-2xl">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="font-title-md text-title-md font-bold">Edit User Details</h3>
+                    <button
+                      onClick={() => {
+                        setEditingUser(null);
+                        setEditUsername("");
+                        setEditPassword("");
+                        setEditError("");
+                        setEditMessage("");
+                      }}
+                      className="text-secondary hover:text-on-surface cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined">close</span>
+                    </button>
+                  </div>
+                  <form onSubmit={handleEditUser} className="space-y-6">
+                    {editError && (
+                      <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-xl text-xs font-semibold text-center">
+                        {editError}
+                      </div>
+                    )}
+                    {editMessage && (
+                      <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-600 rounded-xl text-xs font-semibold text-center">
+                        {editMessage}
+                      </div>
+                    )}
+                    <Input
+                      label="Username"
+                      required
+                      value={editUsername}
+                      onChange={(e) => setEditUsername(e.target.value)}
+                    />
+                    <Input
+                      label="New Password (Leave blank to keep current)"
+                      type="password"
+                      value={editPassword}
+                      onChange={(e) => setEditPassword(e.target.value)}
+                      placeholder="••••••••"
+                    />
+                    <Button
+                      type="submit"
+                      disabled={isEditingUser}
+                      variant="primary"
+                      className="w-full py-4 h-auto rounded-xl font-semibold border-none flex justify-center items-center gap-2"
+                    >
+                      {isEditingUser ? (
+                        <>
+                          <span className="material-symbols-outlined animate-spin text-sm">sync</span>
+                          <span>Updating User...</span>
+                        </>
+                      ) : (
+                        <span>Save Changes</span>
+                      )}
+                    </Button>
+                  </form>
+                </Card>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* --- FORM MODALS --- */}
 
         {/* Project Edit Modal */}
         {editingProject && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-            <Card interactive={false} className="w-full max-w-lg bg-surface-container-lowest max-h-[90vh] overflow-y-auto p-8 border border-outline-variant/30 shadow-2xl">
+            <Card interactive={false} className="w-full max-w-4xl bg-surface-container-lowest max-h-[90vh] overflow-y-auto p-8 border border-outline-variant/30 shadow-2xl">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="font-title-md text-title-md font-bold">
                   {editingProject.id ? "Edit Project Details" : "Create New Project"}
@@ -1268,14 +1628,35 @@ export default function AdminPage() {
                   onChange={(e) => setEditingProject({ ...editingProject, description: e.target.value })}
                   placeholder="Describe your project here..."
                 />
-                <div className="flex flex-col gap-2">
-                  <Input
-                    label="Image URL"
-                    required
-                    value={editingProject.image || ""}
-                    onChange={(e) => setEditingProject({ ...editingProject, image: e.target.value })}
-                    placeholder="https://..."
-                  />
+                 <div className="flex flex-col gap-2">
+                  <div className="flex gap-2 items-end">
+                    <Input
+                      label="Logo URL"
+                      required
+                      value={editingProject.image || ""}
+                      onChange={(e) => setEditingProject({ ...editingProject, image: e.target.value })}
+                      placeholder="https://..."
+                      className="flex-grow"
+                    />
+                    <label 
+                      htmlFor="logo-file-upload" 
+                      className="h-12 px-4 rounded-default border border-[#bdc9c94d] bg-white text-secondary font-semibold text-xs flex items-center justify-center cursor-pointer hover:bg-surface-container transition-colors shrink-0"
+                    >
+                      {isLogoUploading ? (
+                        <span className="material-symbols-outlined animate-spin text-sm">sync</span>
+                      ) : (
+                        <span>Upload Logo</span>
+                      )}
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="logo-file-upload"
+                      className="hidden"
+                      onChange={handleLogoSelect}
+                      disabled={isLogoUploading}
+                    />
+                  </div>
                   {editingProject.image && (
                     <div className="mt-2 w-24 h-24 rounded-lg overflow-hidden border border-outline-variant/30">
                       {(() => {
@@ -1330,6 +1711,30 @@ export default function AdminPage() {
                   </div>
                 </div>
 
+                {/* External Media URLs */}
+                <div className="flex flex-col gap-2 border-t border-outline-variant/10 pt-4">
+                  <div className="flex gap-2 items-end">
+                    <Input
+                      label="Add Media by URL"
+                      value={tempMediaUrl}
+                      onChange={(e) => setTempMediaUrl(e.target.value)}
+                      placeholder="Paste image/video URLs (comma-separated or line-breaks)"
+                      className="flex-grow"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleAddMediaUrl}
+                      className="h-12 px-4 shrink-0"
+                    >
+                      Add URL
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-on-surface-variant">
+                    You can paste multiple URLs separated by commas or lines to add them instantly.
+                  </p>
+                </div>
+
                 {/* Screenshots Previews */}
                 {editingProject.screenshots && editingProject.screenshots.length > 0 && (
                   <div className="flex flex-col gap-2 border-t border-outline-variant/10 pt-4">
@@ -1337,14 +1742,22 @@ export default function AdminPage() {
                       Project Screenshots / Videos ({editingProject.screenshots.length})
                     </label>
                     <div className="grid grid-cols-4 gap-3 mt-2">
-                      {editingProject.screenshots.map((screenshot, idx) => {
+                       {editingProject.screenshots.map((screenshot, idx) => {
                         const isVideo = screenshot && [".mp4", ".mov", ".webm", ".ogg", ".m4v"].some(ext => screenshot.toLowerCase().endsWith(ext) || screenshot.toLowerCase().includes("video"));
                         return (
-                          <div key={idx} className="relative aspect-[9/16] rounded-lg overflow-hidden border border-outline-variant/30 group">
+                          <div
+                            key={idx}
+                            draggable
+                            onDragStart={(e) => handleScreenshotDragStart(e, idx)}
+                            onDragOver={handleScreenshotDragOver}
+                            onDrop={(e) => handleScreenshotDrop(e, idx)}
+                            className="relative aspect-[9/16] rounded-lg overflow-hidden border border-outline-variant/30 group cursor-grab active:cursor-grabbing hover:border-primary/50 transition-all"
+                            title="Drag to reorder"
+                          >
                             {isVideo ? (
-                              <video src={screenshot} className="w-full h-full object-cover" muted loop playsInline />
+                              <video src={screenshot} className="w-full h-full object-cover pointer-events-none" muted loop playsInline />
                             ) : (
-                              <img src={screenshot} alt={`Screenshot ${idx + 1}`} className="w-full h-full object-cover" />
+                              <img src={screenshot} alt={`Screenshot ${idx + 1}`} className="w-full h-full object-cover pointer-events-none" />
                             )}
                             <button
                               type="button"

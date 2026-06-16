@@ -37,7 +37,7 @@ export default function Home() {
   useEffect(() => {
     const loadDbData = async () => {
       try {
-        const resProj = await fetch("/api/projects");
+        const resProj = await fetch("/api/projects", { cache: "no-store" });
         const dataProj = await resProj.json();
         if (Array.isArray(dataProj) && dataProj.length > 0) setProjectsList(dataProj);
 

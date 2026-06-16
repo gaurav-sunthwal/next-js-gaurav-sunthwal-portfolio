@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { projects } from "@/lib/schema";
 import { eq, asc } from "drizzle-orm";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const list = await db.select().from(projects).orderBy(asc(projects.position));
