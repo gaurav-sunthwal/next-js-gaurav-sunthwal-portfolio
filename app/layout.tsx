@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://gauravsunthwal.vercel.app"),
   title: "Gaurav Sunthwal — Full Stack & App Developer Portfolio",
-  description: "Professional software engineering portfolio of Gaurav Sunthwal. Specializing in high-performance Next.js web applications, React Native mobile apps, and Generative AI integrations.",
+  description: "Gaurav Sunthwal is a Professional software engineer. Specializing in high-performance Next.js web applications, React Native mobile apps, and Generative AI integrations.",
   keywords: [
     "Gaurav Sunthwal",
     "Full Stack Developer",
@@ -29,9 +30,12 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Gaurav Sunthwal" }],
   creator: "Gaurav Sunthwal",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "Gaurav Sunthwal — Full Stack & App Developer Portfolio",
-    description: "Professional software engineering portfolio of Gaurav Sunthwal. Specializing in Next.js web applications, React Native mobile apps, and Generative AI integrations.",
+    description: "Gaurav Sunthwal is a Professional software engineer. Specializing in high-performance Next.js web applications, React Native mobile apps, and Generative AI integrations.",
     url: "https://gauravsunthwal.vercel.app",
     siteName: "Gaurav Sunthwal Portfolio",
     locale: "en_US",
@@ -43,7 +47,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Gaurav Sunthwal — Full Stack & App Developer Portfolio",
-    description: "Specializing in high-performance Next.js web applications, React Native mobile apps, and Generative AI integrations."
+    description: "Gaurav Sunthwal is a Professional software engineer. Specializing in high-performance Next.js web applications, React Native mobile apps, and Generative AI integrations."
   },
   verification: {
     google: "4S-SnEkKgabU7Yr4avzDYY7XrbS0BRFh9hpZA8P6uLk",
@@ -70,9 +74,9 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "Person",
     "name": "Gaurav Sunthwal",
-    "url": "https://gaurav-sunthwal.dev",
+    "url": "https://gauravsunthwal.vercel.app",
     "jobTitle": "Full Stack & App Developer",
-    "description": "Professional software engineer specializing in high-performance Next.js web applications, React Native mobile apps, and Generative AI integrations.",
+    "description": "Gaurav Sunthwal is a Professional software engineer. Specializing in high-performance Next.js web applications, React Native mobile apps, and Generative AI integrations.",
     "knowsAbout": [
       "Next.js",
       "React Native",
@@ -84,9 +88,17 @@ export default function RootLayout({
       "Redux",
       "Node.js"
     ],
+    "alumniOf": {
+      "@type": "EducationalOrganization",
+      "name": "MIT World Peace University (MIT-WPU)"
+    },
     "sameAs": [
       "https://github.com/gaurav-sunthwal",
-      "https://linkedin.com/in/gaurav-sunthwal"
+      "https://linkedin.com/in/gaurav-sunthwal",
+      "https://x.com/GauravSunthwal1",
+      "https://www.youtube.com/@GauravSunthwalVlogs",
+      "https://app.codecrafters.io/users/gaurav-sunthwal",
+      "https://www.opentalent.in/gaurav-naresh-sunthwal"
     ]
   };
 
