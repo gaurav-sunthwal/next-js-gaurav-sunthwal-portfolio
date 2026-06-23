@@ -51,6 +51,7 @@ export const testimonials = pgTable("testimonials", {
   company: text("company").notNull(),
   avatar: text("avatar").notNull(),
   quote: text("quote").notNull(),
+  position: integer("position").default(0).notNull(),
 });
 
 export const aiSpecialization = pgTable("ai_specialization", {

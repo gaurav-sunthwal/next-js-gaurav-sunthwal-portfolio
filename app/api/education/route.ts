@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { getSkillsData, saveSkillsData } from "@/lib/data-helper";
+import { db } from "@/lib/db";
+import { education } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 
 export async function GET() {
   try {
-    const data = getSkillsData();
-    return NextResponse.json(data.EDUCATION_ITEMS);
+    const list = await db.select().from(education);
+    return NextResponse.json(list);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -19,23 +21,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const data = getSkillsData();
     if (id) {
-      // Update
-      const index = data.EDUCATION_ITEMS.findIndex((e: any) => e.id === Number(id));
-      if (index !== -1) {
-        data.EDUCATION_ITEMS[index] = { id: Number(id), degree, school, location, image };
-        saveSkillsData(data);
-        return NextResponse.json({ success: true, updated: id });
-      }
-      return NextResponse.json({ error: "Education item not found" }, { status: 404 });
+      await db.update(education).set({ degree, school, location, image }).where(eq(education.id, Number(id)));
+      return NextResponse.json({ success: true, updated: id });
     } else {
-      // Insert
-      const maxId = data.EDUCATION_ITEMS.reduce((max: number, e: any) => (e.id > max ? e.id : max), 0);
-      const newId = maxId + 1;
-      data.EDUCATION_ITEMS.push({ id: newId, degree, school, location, image });
-      saveSkillsData(data);
-      return NextResponse.json({ success: true, inserted: newId });
+      const inserted = await db.insert(education).values({ degree, school, location, image }).returning({ id: education.id });
+      return NextResponse.json({ success: true, inserted: inserted[0]?.id });
     }
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

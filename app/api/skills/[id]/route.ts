@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { getSkillsData, saveSkillsData } from "@/lib/data-helper";
+import { db } from "@/lib/db";
+import { skills } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 
 export async function DELETE(
   request: Request,
@@ -7,15 +9,8 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const data = getSkillsData();
-    const originalLength = data.TECHNICAL_CORE.length;
-    data.TECHNICAL_CORE = data.TECHNICAL_CORE.filter((s: any) => s.id !== Number(id));
-    
-    if (data.TECHNICAL_CORE.length < originalLength) {
-      saveSkillsData(data);
-      return NextResponse.json({ success: true, deleted: id });
-    }
-    return NextResponse.json({ error: "Skill not found" }, { status: 404 });
+    await db.delete(skills).where(eq(skills.id, Number(id)));
+    return NextResponse.json({ success: true, deleted: id });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

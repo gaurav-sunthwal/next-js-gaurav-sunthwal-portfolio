@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { getSkillsData, saveSkillsData } from "@/lib/data-helper";
+import { db } from "@/lib/db";
+import { databases } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 
 export async function GET() {
   try {
-    const data = getSkillsData();
-    return NextResponse.json(data.DATABASES);
+    const list = await db.select().from(databases);
+    return NextResponse.json(list);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -19,27 +21,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const data = getSkillsData();
     if (id) {
-      // Update
-      const index = data.DATABASES.findIndex((d: any) => d.id === Number(id));
-      if (index !== -1) {
-        data.DATABASES[index] = { id: Number(id), name };
-        saveSkillsData(data);
-        return NextResponse.json({ success: true, updated: id });
-      }
-      return NextResponse.json({ error: "Database not found" }, { status: 404 });
+      await db.update(databases).set({ name }).where(eq(databases.id, Number(id)));
+      return NextResponse.json({ success: true, updated: id });
     } else {
-      // Insert (supports comma-separated names)
       const names = name.split(",").map((n: string) => n.trim()).filter(Boolean);
       const insertedIds = [];
       for (const singleName of names) {
-        const maxId = data.DATABASES.reduce((max: number, d: any) => (d.id > max ? d.id : max), 0);
-        const newId = maxId + 1;
-        data.DATABASES.push({ id: newId, name: singleName });
-        insertedIds.push(newId);
+        const inserted = await db.insert(databases).values({ name: singleName }).returning({ id: databases.id });
+        insertedIds.push(inserted[0]?.id);
       }
-      saveSkillsData(data);
       return NextResponse.json({ success: true, inserted: insertedIds });
     }
   } catch (error: any) {

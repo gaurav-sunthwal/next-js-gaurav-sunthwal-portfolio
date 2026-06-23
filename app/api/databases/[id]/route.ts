@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { getSkillsData, saveSkillsData } from "@/lib/data-helper";
+import { db } from "@/lib/db";
+import { databases } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 
 export async function DELETE(
   request: Request,
@@ -7,15 +9,8 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const data = getSkillsData();
-    const originalLength = data.DATABASES.length;
-    data.DATABASES = data.DATABASES.filter((d: any) => d.id !== Number(id));
-    
-    if (data.DATABASES.length < originalLength) {
-      saveSkillsData(data);
-      return NextResponse.json({ success: true, deleted: id });
-    }
-    return NextResponse.json({ error: "Database not found" }, { status: 404 });
+    await db.delete(databases).where(eq(databases.id, Number(id)));
+    return NextResponse.json({ success: true, deleted: id });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

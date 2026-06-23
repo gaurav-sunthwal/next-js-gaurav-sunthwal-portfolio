@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import {
   projects,
   experiences,
+  skills,
   education,
   certifications,
   testimonials,
@@ -481,36 +482,24 @@ Keep your text answers short and focused. Always answer professionally.`,
 
             // Skills
             case "list_skills":
-              result = getSkillsData().TECHNICAL_CORE;
+              result = await db.select().from(skills);
               break;
 
             case "create_or_update_skill": {
               const { id, name, subtitle } = args as any;
-              const data = getSkillsData();
               if (id) {
-                const idx = data.TECHNICAL_CORE.findIndex((s: any) => s.id === Number(id));
-                if (idx !== -1) {
-                  data.TECHNICAL_CORE[idx] = { id: Number(id), name, subtitle };
-                  saveSkillsData(data);
-                  result = { success: true, updated: id };
-                } else {
-                  result = { error: "Skill ID not found" };
-                }
+                await db.update(skills).set({ name, subtitle }).where(eq(skills.id, Number(id)));
+                result = { success: true, updated: id };
               } else {
-                const maxId = data.TECHNICAL_CORE.reduce((max: number, s: any) => (s.id > max ? s.id : max), 0);
-                const newId = maxId + 1;
-                data.TECHNICAL_CORE.push({ id: newId, name, subtitle });
-                saveSkillsData(data);
-                result = { success: true, inserted: newId };
+                const inserted = await db.insert(skills).values({ name, subtitle }).returning({ id: skills.id });
+                result = { success: true, inserted: inserted[0]?.id };
               }
               break;
             }
 
             case "delete_skill": {
               const { id } = args as any;
-              const data = getSkillsData();
-              data.TECHNICAL_CORE = data.TECHNICAL_CORE.filter((s: any) => s.id !== Number(id));
-              saveSkillsData(data);
+              await db.delete(skills).where(eq(skills.id, Number(id)));
               result = { success: true, deleted: id };
               break;
             }
@@ -567,31 +556,21 @@ Keep your text answers short and focused. Always answer professionally.`,
 
             // AI Specializations
             case "list_ai_specializations":
-              result = getSkillsData().AI_SPECIALIZATION;
+              result = await db.select().from(aiSpecialization);
               break;
 
             case "create_or_update_ai_specialization": {
               const { id, name } = args as any;
-              const data = getSkillsData();
               if (id) {
-                const idx = data.AI_SPECIALIZATION.findIndex((a: any) => a.id === Number(id));
-                if (idx !== -1) {
-                  data.AI_SPECIALIZATION[idx] = { id: Number(id), name };
-                  saveSkillsData(data);
-                  result = { success: true, updated: id };
-                } else {
-                  result = { error: "AI specialization ID not found" };
-                }
+                await db.update(aiSpecialization).set({ name }).where(eq(aiSpecialization.id, Number(id)));
+                result = { success: true, updated: id };
               } else {
                 const names = name.split(",").map((n: string) => n.trim()).filter(Boolean);
                 const insertedIds = [];
                 for (const singleName of names) {
-                  const maxId = data.AI_SPECIALIZATION.reduce((max: number, a: any) => (a.id > max ? a.id : max), 0);
-                  const newId = maxId + 1;
-                  data.AI_SPECIALIZATION.push({ id: newId, name: singleName });
-                  insertedIds.push(newId);
+                  const inserted = await db.insert(aiSpecialization).values({ name: singleName }).returning({ id: aiSpecialization.id });
+                  insertedIds.push(inserted[0]?.id);
                 }
-                saveSkillsData(data);
                 result = { success: true, inserted: insertedIds };
               }
               break;
@@ -599,40 +578,28 @@ Keep your text answers short and focused. Always answer professionally.`,
 
             case "delete_ai_specialization": {
               const { id } = args as any;
-              const data = getSkillsData();
-              data.AI_SPECIALIZATION = data.AI_SPECIALIZATION.filter((a: any) => a.id !== Number(id));
-              saveSkillsData(data);
+              await db.delete(aiSpecialization).where(eq(aiSpecialization.id, Number(id)));
               result = { success: true, deleted: id };
               break;
             }
 
             // Databases
             case "list_databases":
-              result = getSkillsData().DATABASES;
+              result = await db.select().from(databases);
               break;
 
             case "create_or_update_database": {
               const { id, name } = args as any;
-              const data = getSkillsData();
               if (id) {
-                const idx = data.DATABASES.findIndex((d: any) => d.id === Number(id));
-                if (idx !== -1) {
-                  data.DATABASES[idx] = { id: Number(id), name };
-                  saveSkillsData(data);
-                  result = { success: true, updated: id };
-                } else {
-                  result = { error: "Database ID not found" };
-                }
+                await db.update(databases).set({ name }).where(eq(databases.id, Number(id)));
+                result = { success: true, updated: id };
               } else {
                 const names = name.split(",").map((n: string) => n.trim()).filter(Boolean);
                 const insertedIds = [];
                 for (const singleName of names) {
-                  const maxId = data.DATABASES.reduce((max: number, d: any) => (d.id > max ? d.id : max), 0);
-                  const newId = maxId + 1;
-                  data.DATABASES.push({ id: newId, name: singleName });
-                  insertedIds.push(newId);
+                  const inserted = await db.insert(databases).values({ name: singleName }).returning({ id: databases.id });
+                  insertedIds.push(inserted[0]?.id);
                 }
-                saveSkillsData(data);
                 result = { success: true, inserted: insertedIds };
               }
               break;
@@ -640,9 +607,7 @@ Keep your text answers short and focused. Always answer professionally.`,
 
             case "delete_database": {
               const { id } = args as any;
-              const data = getSkillsData();
-              data.DATABASES = data.DATABASES.filter((d: any) => d.id !== Number(id));
-              saveSkillsData(data);
+              await db.delete(databases).where(eq(databases.id, Number(id)));
               result = { success: true, deleted: id };
               break;
             }

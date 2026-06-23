@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { getSkillsData, saveSkillsData } from "@/lib/data-helper";
+import { db } from "@/lib/db";
+import { skills } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 
 export async function GET() {
   try {
-    const data = getSkillsData();
-    return NextResponse.json(data.TECHNICAL_CORE);
+    const list = await db.select().from(skills);
+    return NextResponse.json(list);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -19,23 +21,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const data = getSkillsData();
     if (id) {
-      // Update
-      const index = data.TECHNICAL_CORE.findIndex((s: any) => s.id === Number(id));
-      if (index !== -1) {
-        data.TECHNICAL_CORE[index] = { id: Number(id), name, subtitle };
-        saveSkillsData(data);
-        return NextResponse.json({ success: true, updated: id });
-      }
-      return NextResponse.json({ error: "Skill not found" }, { status: 404 });
+      await db.update(skills).set({ name, subtitle }).where(eq(skills.id, Number(id)));
+      return NextResponse.json({ success: true, updated: id });
     } else {
-      // Insert
-      const maxId = data.TECHNICAL_CORE.reduce((max: number, s: any) => (s.id > max ? s.id : max), 0);
-      const newId = maxId + 1;
-      data.TECHNICAL_CORE.push({ id: newId, name, subtitle });
-      saveSkillsData(data);
-      return NextResponse.json({ success: true, inserted: newId });
+      const inserted = await db.insert(skills).values({ name, subtitle }).returning({ id: skills.id });
+      return NextResponse.json({ success: true, inserted: inserted[0]?.id });
     }
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

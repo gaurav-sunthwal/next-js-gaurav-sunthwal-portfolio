@@ -12,6 +12,45 @@ interface ReviewsTabProps {
 export function ReviewsTab({ testimonials, loadData }: ReviewsTabProps) {
   const [editingTestimonial, setEditingTestimonial] = useState<Partial<TestimonialItem> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [draggedTestimonialId, setDraggedTestimonialId] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, id: number) => {
+    e.dataTransfer.setData("text/plain", id.toString());
+    setDraggedTestimonialId(id);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetId: number) => {
+    e.preventDefault();
+    const draggedIdStr = e.dataTransfer.getData("text/plain");
+    const draggedId = draggedIdStr !== "" ? parseInt(draggedIdStr, 10) : draggedTestimonialId;
+    if (draggedId === null || draggedId === undefined || draggedId === targetId || isNaN(draggedId)) return;
+
+    const draggedIdx = testimonials.findIndex(t => (t as any).id === draggedId);
+    const targetIdx = testimonials.findIndex(t => (t as any).id === targetId);
+    if (draggedIdx === -1 || targetIdx === -1) return;
+
+    const updatedTestimonials = [...testimonials];
+    const [draggedTest] = updatedTestimonials.splice(draggedIdx, 1);
+    updatedTestimonials.splice(targetIdx, 0, draggedTest);
+
+    try {
+      const ids = updatedTestimonials.map(t => (t as any).id);
+      await fetch("/api/testimonials/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+      await loadData();
+    } catch (err) {
+      console.error("Failed to save reordered testimonials", err);
+    } finally {
+      setDraggedTestimonialId(null);
+    }
+  };
 
   const saveTestimonial = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +83,12 @@ export function ReviewsTab({ testimonials, loadData }: ReviewsTabProps) {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Partner Testimonials</h2>
+        <div>
+          <h2 className="text-xl font-bold">Partner Testimonials</h2>
+          <p className="text-xs text-on-surface-variant mt-1">
+            Drag and drop cards to rearrange testimonials.
+          </p>
+        </div>
         <Button variant="primary" onClick={() => setEditingTestimonial({})} className="flex items-center gap-2 border-none">
           <span className="material-symbols-outlined text-sm">add</span> Add Review
         </Button>
@@ -52,8 +96,27 @@ export function ReviewsTab({ testimonials, loadData }: ReviewsTabProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {testimonials.map((test, idx) => (
-          <Card key={idx} interactive={false} className="p-6 border border-outline-variant/20 bg-surface-container-lowest flex flex-col justify-between">
-            <p className="text-xs text-on-surface-variant italic mb-6 leading-relaxed">"{test.quote}"</p>
+          <Card 
+            key={idx} 
+            interactive={false} 
+            draggable
+            onDragStart={(e) => handleDragStart(e, (test as any).id)}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, (test as any).id)}
+            className={`p-6 border flex flex-col justify-between cursor-move transition-all ${
+              draggedTestimonialId === (test as any).id
+                ? "opacity-40 border-primary border-dashed bg-primary/5"
+                : "border-outline-variant/20 hover:border-primary/40 bg-surface-container-lowest shadow-sm hover:shadow-md"
+            }`}
+          >
+            <div className="flex items-start gap-4">
+              <div className="text-on-surface-variant/40 hover:text-on-surface transition-colors cursor-grab active:cursor-grabbing self-start pt-1" title="Drag to reorder">
+                <span className="material-symbols-outlined">drag_indicator</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-on-surface-variant italic mb-6 leading-relaxed">"{test.quote}"</p>
+              </div>
+            </div>
             <div className="flex items-center justify-between pt-4 border-t border-outline-variant/10">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
