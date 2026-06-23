@@ -15,6 +15,7 @@ export interface ProjectItem {
 }
 
 export interface ExperienceItem {
+  id?: number;
   company: string;
   role: string;
   period: string;
@@ -141,6 +142,7 @@ export const EDUCATION_ITEMS: EducationItem[] = skillsData.EDUCATION_ITEMS;
 export const CERTIFICATIONS: CertificationItem[] = skillsData.CERTIFICATIONS;
 
 export interface TestimonialItem {
+  id?: number;
   role: string;
   company: string;
   avatar: string;
@@ -173,6 +175,13 @@ export const TESTIMONIALS: TestimonialItem[] = [
     quote: "Gaurav's capability in React and AI logic integrations is state of the art. He resolved our complex data flows effortlessly."
   }
 ];
+
+export const DEFAULT_HOMEPAGE_TEXTS = {
+  hero_title: 'Full Stack Developer specializing in Generative AI & RAG Systems.',
+  hero_title_highlight : '<span class="text-primary">Generative AI</span>',
+  hero_description: 'Building production-ready AI products with Next.js and React Native. Focused on bridging LLM capabilities with high-performance user experiences.',
+};
+
 
 
 

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { Navigation } from "@/components/Navigation";
 import { MagneticWrap } from "@/components/MagneticWrap";
-import { PROJECT_ITEMS, EXPERIENCE_ITEMS, ProjectItem, TESTIMONIALS, ExperienceItem, TestimonialItem } from "@/lib/data";
+import { PROJECT_ITEMS, EXPERIENCE_ITEMS, ProjectItem, TESTIMONIALS, ExperienceItem, TestimonialItem, DEFAULT_HOMEPAGE_TEXTS, TECHNICAL_CORE, AI_SPECIALIZATION, DATABASES, CERTIFICATIONS } from "@/lib/data";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Chip } from "@/components/Chip";
@@ -28,6 +28,27 @@ export default function Home() {
   const [experienceList, setExperienceList] = useState<ExperienceItem[]>(EXPERIENCE_ITEMS);
   const [testimonialsList, setTestimonialsList] = useState<TestimonialItem[]>(TESTIMONIALS);
   const [resumeUrl, setResumeUrl] = useState("#");
+  const [texts, setTexts] = useState(DEFAULT_HOMEPAGE_TEXTS);
+  const [skillsList, setSkillsList] = useState<any[]>(TECHNICAL_CORE);
+  const [aiList, setAiList] = useState<any[]>(AI_SPECIALIZATION.map((name, idx) => ({ id: idx, name })));
+  const [dbsList, setDbsList] = useState<any[]>(DATABASES.map((name, idx) => ({ id: idx, name })));
+  const [certsList, setCertsList] = useState<any[]>(CERTIFICATIONS);
+
+  const renderedHeroTitle = React.useMemo(() => {
+    const title = texts.hero_title || "";
+    const highlight = texts.hero_title_highlight || "";
+    if (!highlight) return title;
+
+    const cleanHighlight = highlight.replace(/<\/?[^>]+(>|$)/g, "");
+    if (!cleanHighlight) return title;
+
+    const highlightHtml = highlight.includes("<span") ? highlight : `<span class="text-primary">${highlight}</span>`;
+
+    if (title.includes(cleanHighlight)) {
+      return title.replace(cleanHighlight, highlightHtml);
+    }
+    return title;
+  }, [texts.hero_title, texts.hero_title_highlight]);
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" }, [
     Autoplay({ delay: 5000, stopOnInteraction: false, playOnInit: false })
@@ -49,10 +70,42 @@ export default function Home() {
         const dataTest = await resTest.json();
         if (Array.isArray(dataTest) && dataTest.length > 0) setTestimonialsList(dataTest);
 
-        const resSettings = await fetch("/api/settings?key=resume_url");
+        const resSkills = await fetch("/api/skills");
+        if (resSkills.ok) {
+          const dataSkills = await resSkills.json();
+          if (Array.isArray(dataSkills) && dataSkills.length > 0) setSkillsList(dataSkills);
+        }
+
+        const resAi = await fetch("/api/ai-specialization");
+        if (resAi.ok) {
+          const dataAi = await resAi.json();
+          if (Array.isArray(dataAi) && dataAi.length > 0) setAiList(dataAi);
+        }
+
+        const resDbs = await fetch("/api/databases");
+        if (resDbs.ok) {
+          const dataDbs = await resDbs.json();
+          if (Array.isArray(dataDbs) && dataDbs.length > 0) setDbsList(dataDbs);
+        }
+
+        const resCerts = await fetch("/api/certifications");
+        if (resCerts.ok) {
+          const dataCerts = await resCerts.json();
+          if (Array.isArray(dataCerts) && dataCerts.length > 0) setCertsList(dataCerts);
+        }
+
+        const resSettings = await fetch("/api/settings");
         if (resSettings.ok) {
           const settingData = await resSettings.json();
-          if (settingData && settingData.value) setResumeUrl(settingData.value);
+          if (settingData) {
+            setTexts((prev) => ({
+              ...prev,
+              ...settingData,
+            }));
+            if (settingData.resume_url) {
+              setResumeUrl(settingData.resume_url);
+            }
+          }
         }
       } catch (err) {
         console.error("Failed to load page data from database", err);
@@ -147,11 +200,12 @@ export default function Home() {
                 </span>
                 Available for New Roles
               </div>
-              <h1 className="stagger-item text-4xl md:text-6xl font-bold text-on-surface max-w-2xl tracking-tighter leading-tight">
-                Full Stack Developer specializing in <span className="text-primary">Generative AI</span> & RAG Systems.
-              </h1>
+              <h1 
+                className="stagger-item text-4xl md:text-6xl font-bold text-on-surface max-w-2xl tracking-tighter leading-tight"
+                dangerouslySetInnerHTML={{ __html: renderedHeroTitle }}
+              />
               <p className="stagger-item text-lg text-on-surface-variant max-w-xl leading-relaxed">
-                Building production-ready AI products with Next.js and React Native. Focused on bridging LLM capabilities with high-performance user experiences.
+                {texts.hero_description}
               </p>
               <div className="stagger-item flex flex-wrap gap-4 pt-4">
                 <MagneticWrap>
@@ -357,38 +411,39 @@ export default function Home() {
                 <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/10">
                   <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-4">Languages & Frameworks</h4>
                   <div className="flex flex-wrap gap-2">
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">Python</Chip>
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">TypeScript</Chip>
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">JavaScript</Chip>
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">Next.js</Chip>
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">React Native</Chip>
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">Node.js</Chip>
+                    {skillsList.map((skill) => (
+                      <Chip key={skill.id || skill.name} active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">
+                        {skill.name}
+                      </Chip>
+                    ))}
                   </div>
                 </div>
                 <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/10">
                   <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-4">AI & ML Tools</h4>
                   <div className="flex flex-wrap gap-2">
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">Gemini</Chip>
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">GPT-4</Chip>
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">Claude</Chip>
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">LangChain</Chip>
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">LangGraph</Chip>
+                    {aiList.map((item) => (
+                      <Chip key={item.id || item.name} active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">
+                        {item.name}
+                      </Chip>
+                    ))}
                   </div>
                 </div>
                 <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/10">
                   <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-4">Databases & Infrastructure</h4>
                   <div className="flex flex-wrap gap-2">
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">PostgreSQL</Chip>
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">Drizzle ORM</Chip>
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">Firebase</Chip>
-                    <Chip active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">Mongo DB</Chip>
+                    {dbsList.map((item) => (
+                      <Chip key={item.id || item.name} active={false} className="px-3 py-1.5 bg-surface-container border-none text-sm font-medium cursor-default hover:text-[#717171] hover:border-transparent">
+                        {item.name}
+                      </Chip>
+                    ))}
                   </div>
                 </div>
                 <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/10">
                   <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-4">Certifications</h4>
                   <ul className="text-sm space-y-2 text-on-surface-variant">
-                    <li>• Complete JS Course 2021: Zero to Expert</li>
-                    <li>• Build Responsive Real World Websites</li>
+                    {certsList.map((cert) => (
+                      <li key={cert.id || cert.title}>• {cert.title}: {cert.subtitle}</li>
+                    ))}
                   </ul>
                 </div>
               </div>

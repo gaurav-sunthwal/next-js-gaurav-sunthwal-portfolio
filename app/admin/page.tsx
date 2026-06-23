@@ -4,9 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { Chip } from "@/components/Chip";
-import { Input, TextArea } from "@/components/Input";
-import { ListItem } from "@/components/ListItem";
+import { Input } from "@/components/Input";
 import {
   PROJECT_ITEMS as initialProjects,
   EXPERIENCE_ITEMS as initialExperience,
@@ -22,29 +20,58 @@ import {
   EducationItem,
   CertificationItem,
   TestimonialItem,
+  DEFAULT_HOMEPAGE_TEXTS,
 } from "@/lib/data";
 
-type TabType = "overview" | "projects" | "experience" | "skills" | "reviews" | "users";
+// Import modular sub-page tab components
+import { OverviewTab } from "@/app/admin/components/OverviewTab";
+import { ProjectsTab } from "@/app/admin/components/ProjectsTab";
+import { ExperienceTab } from "@/app/admin/components/ExperienceTab";
+import { SkillsTab } from "@/app/admin/components/SkillsTab";
+import { ReviewsTab } from "@/app/admin/components/ReviewsTab";
+import { UsersTab } from "@/app/admin/components/UsersTab";
+import { AIAssistantTab } from "@/app/admin/components/AIAssistantTab";
+
+type TabType = "overview" | "projects" | "experience" | "skills" | "reviews" | "users" | "agent";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
 
-  // User creation states
-  const [regUsername, setRegUsername] = useState("");
-  const [regPassword, setRegPassword] = useState("");
-  const [regMessage, setRegMessage] = useState("");
-  const [regError, setRegError] = useState("");
-  const [isRegistering, setIsRegistering] = useState(false);
+  // Authentication states
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [authUsername, setAuthUsername] = useState("");
+  const [loginUser, setLoginUser] = useState("");
+  const [loginPass, setLoginPass] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
 
-  // User list states
+  // User accounts list
   const [usersList, setUsersList] = useState<{ id: number; username: string; createdAt: string }[]>([]);
-  const [editingUser, setEditingUser] = useState<{ id: number; username: string } | null>(null);
-  const [editUsername, setEditUsername] = useState("");
-  const [editPassword, setEditPassword] = useState("");
-  const [editError, setEditError] = useState("");
-  const [editMessage, setEditMessage] = useState("");
-  const [isEditingUser, setIsEditingUser] = useState(false);
 
+  // Database-synced content states
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
+  const [experiences, setExperiences] = useState<ExperienceItem[]>([]);
+  const [skills, setSkills] = useState<SkillItem[]>([]);
+  const [education, setEducation] = useState<EducationItem[]>([]);
+  const [certs, setCerts] = useState<CertificationItem[]>([]);
+  const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
+  const [aiSpecs, setAiSpecs] = useState<{ id?: number; name: string }[]>(initialAi.map(s => ({ name: s })));
+  const [databases, setDatabases] = useState<{ id?: number; name: string }[]>(initialDbs.map(s => ({ name: s })));
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Resume settings states
+  const [resumeUrl, setResumeUrl] = useState("");
+  const [isResumeUploading, setIsResumeUploading] = useState(false);
+  const [resumeUploadProgress, setResumeUploadProgress] = useState(0);
+
+  // Homepage hero settings states
+  const [heroTitle, setHeroTitle] = useState("");
+  const [heroTitleHighlight, setHeroTitleHighlight] = useState("");
+  const [heroDescription, setHeroDescription] = useState("");
+  const [isSavingTexts, setIsSavingTexts] = useState(false);
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+
+  // Fetch registered users list
   const fetchUsers = async () => {
     try {
       const res = await fetch("/api/auth/users");
@@ -57,121 +84,11 @@ export default function AdminPage() {
     }
   };
 
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setRegError("");
-    setRegMessage("");
-    setIsRegistering(true);
-
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: regUsername, password: regPassword }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setRegMessage("User created successfully!");
-        setRegUsername("");
-        setRegPassword("");
-        fetchUsers(); // Refresh list
-      } else {
-        setRegError(data.error || "Failed to create user");
-      }
-    } catch (err) {
-      setRegError("An error occurred. Please try again.");
-    } finally {
-      setIsRegistering(false);
-    }
-  };
-
-  const handleEditUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingUser) return;
-    setEditError("");
-    setEditMessage("");
-    setIsEditingUser(true);
-
-    try {
-      const res = await fetch("/api/auth/users", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: editingUser.id,
-          username: editUsername,
-          password: editPassword || undefined,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setEditMessage("User updated successfully!");
-        fetchUsers(); // Refresh list
-        setTimeout(() => {
-          setEditingUser(null);
-          setEditUsername("");
-          setEditPassword("");
-          setEditMessage("");
-        }, 1500);
-      } else {
-        setEditError(data.error || "Failed to update user");
-      }
-    } catch (err) {
-      setEditError("An error occurred. Please try again.");
-    } finally {
-      setIsEditingUser(false);
-    }
-  };
-
-  const handleDeleteUser = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
-    try {
-      const res = await fetch(`/api/auth/users?id=${id}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
-      if (res.ok) {
-        fetchUsers(); // Refresh list
-      } else {
-        alert(data.error || "Failed to delete user");
-      }
-    } catch (err) {
-      alert("An error occurred while deleting the user");
-    }
-  };
-  // Authentication states
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [authUsername, setAuthUsername] = useState("");
-  const [loginUser, setLoginUser] = useState("");
-  const [loginPass, setLoginPass] = useState("");
-  const [authError, setAuthError] = useState("");
-  const [isAuthLoading, setIsAuthLoading] = useState(false);
-
   React.useEffect(() => {
     if (isAuthenticated && activeTab === "users") {
       fetchUsers();
     }
   }, [isAuthenticated, activeTab]);
-
-  // Local state representing database-synced data
-  const [projects, setProjects] = useState<ProjectItem[]>([]);
-  const [experiences, setExperiences] = useState<ExperienceItem[]>([]);
-  const [skills, setSkills] = useState<SkillItem[]>([]);
-  const [aiSpecs, setAiSpecs] = useState<{id?: number; name: string}[]>(initialAi.map(s => ({name: s})));
-  const [databases, setDatabases] = useState<{id?: number; name: string}[]>(initialDbs.map(s => ({name: s})));
-  const [education, setEducation] = useState<EducationItem[]>([]);
-  const [certs, setCerts] = useState<CertificationItem[]>([]);
-  const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isSaving, setIsSaving] = useState(false);
-  const [draggedProjectId, setDraggedProjectId] = useState<string | null>(null);
-  const [draggedScreenshotIdx, setDraggedScreenshotIdx] = useState<number | null>(null);
-  const [resumeUrl, setResumeUrl] = useState("");
-  const [isResumeUploading, setIsResumeUploading] = useState(false);
-  const [resumeUploadProgress, setResumeUploadProgress] = useState(0);
-  const [isLogoUploading, setIsLogoUploading] = useState(false);
 
   // Verify authentication on mount
   React.useEffect(() => {
@@ -192,422 +109,167 @@ export default function AdminPage() {
     checkAuth();
   }, []);
 
-  // Fetch all data from APIs and auto-seed if empty
-  React.useEffect(() => {
+  // Fetch all database contents (runs on auth and mutation refresh)
+  const loadData = React.useCallback(async () => {
     if (!isAuthenticated) return;
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
+    try {
+      setIsLoading(true);
 
-        // Fetch Projects
-        const resProj = await fetch("/api/projects");
-        let dataProj = await resProj.json();
-        if (!Array.isArray(dataProj) || dataProj.length === 0) {
-          for (const item of initialProjects) {
-            await fetch("/api/projects", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(item),
-            });
-          }
-          const fresh = await fetch("/api/projects");
-          dataProj = await fresh.json();
+      // Fetch Projects
+      const resProj = await fetch("/api/projects");
+      let dataProj = await resProj.json();
+      if (!Array.isArray(dataProj) || dataProj.length === 0) {
+        for (const item of initialProjects) {
+          await fetch("/api/projects", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          });
         }
-        setProjects(dataProj);
-
-        // Fetch Experience
-        const resExp = await fetch("/api/experience");
-        let dataExp = await resExp.json();
-        if (!Array.isArray(dataExp) || dataExp.length === 0) {
-          for (const item of initialExperience) {
-            await fetch("/api/experience", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(item),
-            });
-          }
-          const fresh = await fetch("/api/experience");
-          dataExp = await fresh.json();
-        }
-        setExperiences(dataExp);
-
-        // Fetch Skills
-        const resSkills = await fetch("/api/skills");
-        let dataSkills = await resSkills.json();
-        if (!Array.isArray(dataSkills) || dataSkills.length === 0) {
-          for (const item of initialSkills) {
-            await fetch("/api/skills", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(item),
-            });
-          }
-          const fresh = await fetch("/api/skills");
-          dataSkills = await fresh.json();
-        }
-        setSkills(dataSkills);
-
-        // Fetch Education
-        const resEdu = await fetch("/api/education");
-        let dataEdu = await resEdu.json();
-        if (!Array.isArray(dataEdu) || dataEdu.length === 0) {
-          for (const item of initialEdu) {
-            await fetch("/api/education", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(item),
-            });
-          }
-          const fresh = await fetch("/api/education");
-          dataEdu = await fresh.json();
-        }
-        setEducation(dataEdu);
-
-        // Fetch Certifications
-        const resCerts = await fetch("/api/certifications");
-        let dataCerts = await resCerts.json();
-        if (!Array.isArray(dataCerts) || dataCerts.length === 0) {
-          for (const item of initialCerts) {
-            await fetch("/api/certifications", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(item),
-            });
-          }
-          const fresh = await fetch("/api/certifications");
-          dataCerts = await fresh.json();
-        }
-        setCerts(dataCerts);
-
-        // Fetch Testimonials
-        const resTest = await fetch("/api/testimonials");
-        let dataTest = await resTest.json();
-        if (!Array.isArray(dataTest) || dataTest.length === 0) {
-          for (const item of initialTestimonials) {
-            await fetch("/api/testimonials", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(item),
-            });
-          }
-          const fresh = await fetch("/api/testimonials");
-          dataTest = await fresh.json();
-        }
-        setTestimonials(dataTest);
-
-        // Fetch AI Specialization
-        const resAi = await fetch("/api/ai-specialization");
-        let dataAi = await resAi.json();
-        if (!Array.isArray(dataAi) || dataAi.length === 0) {
-          for (const item of initialAi) {
-            await fetch("/api/ai-specialization", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ name: item }),
-            });
-          }
-          const fresh = await fetch("/api/ai-specialization");
-          dataAi = await fresh.json();
-        }
-        setAiSpecs(dataAi);
-
-        // Fetch Databases
-        const resDbList = await fetch("/api/databases");
-        let dataDbList = await resDbList.json();
-        if (!Array.isArray(dataDbList) || dataDbList.length === 0) {
-          for (const item of initialDbs) {
-            await fetch("/api/databases", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ name: item }),
-            });
-          }
-          const fresh = await fetch("/api/databases");
-          dataDbList = await fresh.json();
-        }
-        setDatabases(dataDbList);
-
-        // Fetch Settings / Resume
-        const resSettings = await fetch("/api/settings?key=resume_url");
-        if (resSettings.ok) {
-          const settingData = await resSettings.json();
-          if (settingData && settingData.value) {
-            setResumeUrl(settingData.value);
-          }
-        }
-
-      } catch (err) {
-        console.error("Failed loading data from API", err);
-      } finally {
-        setIsLoading(false);
+        const fresh = await fetch("/api/projects");
+        dataProj = await fresh.json();
       }
-    };
+      setProjects(dataProj);
 
-    loadData();
+      // Fetch Experience
+      const resExp = await fetch("/api/experience");
+      let dataExp = await resExp.json();
+      if (!Array.isArray(dataExp) || dataExp.length === 0) {
+        for (const item of initialExperience) {
+          await fetch("/api/experience", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          });
+        }
+        const fresh = await fetch("/api/experience");
+        dataExp = await fresh.json();
+      }
+      setExperiences(dataExp);
+
+      // Fetch Skills
+      const resSkills = await fetch("/api/skills");
+      let dataSkills = await resSkills.json();
+      if (!Array.isArray(dataSkills) || dataSkills.length === 0) {
+        for (const item of initialSkills) {
+          await fetch("/api/skills", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          });
+        }
+        const fresh = await fetch("/api/skills");
+        dataSkills = await fresh.json();
+      }
+      setSkills(dataSkills);
+
+      // Fetch Education
+      const resEdu = await fetch("/api/education");
+      let dataEdu = await resEdu.json();
+      if (!Array.isArray(dataEdu) || dataEdu.length === 0) {
+        for (const item of initialEdu) {
+          await fetch("/api/education", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          });
+        }
+        const fresh = await fetch("/api/education");
+        dataEdu = await fresh.json();
+      }
+      setEducation(dataEdu);
+
+      // Fetch Certifications
+      const resCerts = await fetch("/api/certifications");
+      let dataCerts = await resCerts.json();
+      if (!Array.isArray(dataCerts) || dataCerts.length === 0) {
+        for (const item of initialCerts) {
+          await fetch("/api/certifications", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          });
+        }
+        const fresh = await fetch("/api/certifications");
+        dataCerts = await fresh.json();
+      }
+      setCerts(dataCerts);
+
+      // Fetch Testimonials
+      const resTest = await fetch("/api/testimonials");
+      let dataTest = await resTest.json();
+      if (!Array.isArray(dataTest) || dataTest.length === 0) {
+        for (const item of initialTestimonials) {
+          await fetch("/api/testimonials", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          });
+        }
+        const fresh = await fetch("/api/testimonials");
+        dataTest = await fresh.json();
+      }
+      setTestimonials(dataTest);
+
+      // Fetch AI Specialization
+      const resAi = await fetch("/api/ai-specialization");
+      let dataAi = await resAi.json();
+      if (!Array.isArray(dataAi) || dataAi.length === 0) {
+        for (const item of initialAi) {
+          await fetch("/api/ai-specialization", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: item }),
+          });
+        }
+        const fresh = await fetch("/api/ai-specialization");
+        dataAi = await fresh.json();
+      }
+      setAiSpecs(dataAi);
+
+      // Fetch Databases
+      const resDbList = await fetch("/api/databases");
+      let dataDbList = await resDbList.json();
+      if (!Array.isArray(dataDbList) || dataDbList.length === 0) {
+        for (const item of initialDbs) {
+          await fetch("/api/databases", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: item }),
+          });
+        }
+        const fresh = await fetch("/api/databases");
+        dataDbList = await fresh.json();
+      }
+      setDatabases(dataDbList);
+
+      // Fetch Settings / Resume / Homepage Texts
+      const resSettings = await fetch("/api/settings");
+      if (resSettings.ok) {
+        const settingsData = await resSettings.json();
+        if (settingsData) {
+          if (settingsData.resume_url) {
+            setResumeUrl(settingsData.resume_url);
+          }
+          setHeroTitle(settingsData.hero_title || DEFAULT_HOMEPAGE_TEXTS.hero_title);
+          setHeroTitleHighlight(settingsData.hero_title_highlight || DEFAULT_HOMEPAGE_TEXTS.hero_title_highlight);
+          setHeroDescription(settingsData.hero_description || DEFAULT_HOMEPAGE_TEXTS.hero_description);
+          setGeminiApiKey(settingsData.gemini_api_key || "");
+        }
+      }
+
+    } catch (err) {
+      console.error("Failed loading data from API", err);
+    } finally {
+      setIsLoading(false);
+    }
   }, [isAuthenticated]);
 
-  // Modal / Form States
-  const [editingProject, setEditingProject] = useState<Partial<ProjectItem> | null>(null);
-  const [editingExperience, setEditingExperience] = useState<Partial<ExperienceItem> | null>(null);
-  const [editingSkill, setEditingSkill] = useState<Partial<SkillItem> | null>(null);
-  const [editingEdu, setEditingEdu] = useState<Partial<EducationItem> | null>(null);
-  const [editingCert, setEditingCert] = useState<Partial<CertificationItem> | null>(null);
-  const [editingTestimonial, setEditingTestimonial] = useState<Partial<TestimonialItem> | null>(null);
+  React.useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-  // Helpers for tags & lists
-  const [tempTags, setTempTags] = useState("");
-  const [tempTech, setTempTech] = useState("");
-  const [tempBullets, setTempBullets] = useState("");
-  const [tempMediaUrl, setTempMediaUrl] = useState("");
-
-  const resetTempStates = () => {
-    setTempTags("");
-    setTempTech("");
-    setTempBullets("");
-    setTempMediaUrl("");
-  };
-
-  const handleAddMediaUrl = () => {
-    if (!tempMediaUrl.trim() || !editingProject) return;
-    const urls = tempMediaUrl
-      .split(/[,\n]/)
-      .map((url) => url.trim())
-      .filter(Boolean);
-
-    const currentScreenshots = [...(editingProject.screenshots || [])];
-    setEditingProject({
-      ...editingProject,
-      screenshots: [...currentScreenshots, ...urls],
-    });
-    setTempMediaUrl("");
-  };
-
-  const handleScreenshotDragStart = (e: React.DragEvent, index: number) => {
-    e.dataTransfer.setData("text/plain", index.toString());
-    setDraggedScreenshotIdx(index);
-  };
-
-  const handleScreenshotDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleScreenshotDrop = (e: React.DragEvent, targetIndex: number) => {
-    e.preventDefault();
-    const draggedIdxStr = e.dataTransfer.getData("text/plain");
-    const draggedIdx = draggedIdxStr !== "" ? parseInt(draggedIdxStr, 10) : draggedScreenshotIdx;
-    if (draggedIdx === null || draggedIdx === undefined || draggedIdx === targetIndex || isNaN(draggedIdx)) return;
-
-    if (!editingProject || !editingProject.screenshots) return;
-
-    const updatedScreenshots = [...editingProject.screenshots];
-    const [draggedItem] = updatedScreenshots.splice(draggedIdx, 1);
-    updatedScreenshots.splice(targetIndex, 0, draggedItem);
-
-    setEditingProject({
-      ...editingProject,
-      screenshots: updatedScreenshots,
-    });
-    setDraggedScreenshotIdx(null);
-  };
-
-  const handleProjectDragStart = (e: React.DragEvent, id: string) => {
-    e.dataTransfer.setData("text/plain", id);
-    setDraggedProjectId(id);
-  };
-
-  const handleProjectDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleProjectDrop = async (e: React.DragEvent, targetId: string) => {
-    e.preventDefault();
-    const draggedId = e.dataTransfer.getData("text/plain") || draggedProjectId;
-    if (!draggedId || draggedId === targetId) return;
-
-    const draggedIdx = projects.findIndex(p => p.id === draggedId);
-    const targetIdx = projects.findIndex(p => p.id === targetId);
-    if (draggedIdx === -1 || targetIdx === -1) return;
-
-    const updatedProjects = [...projects];
-    const [draggedProject] = updatedProjects.splice(draggedIdx, 1);
-    updatedProjects.splice(targetIdx, 0, draggedProject);
-
-    setProjects(updatedProjects);
-    setDraggedProjectId(null);
-
-    try {
-      const ids = updatedProjects.map(p => p.id);
-      await fetch("/api/projects/reorder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids }),
-      });
-    } catch (err) {
-      console.error("Failed to save reordered projects", err);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const uploadFileWithProgress = (file: File, onProgress: (percent: number) => void): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      const formData = new FormData();
-      formData.append("file", file);
-
-      xhr.open("POST", "/api/upload", true);
-
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = Math.round((event.loaded / event.total) * 100);
-          onProgress(percentComplete);
-        }
-      };
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const res = JSON.parse(xhr.responseText);
-            if (res.url) resolve(res.url);
-            else reject(new Error(res.error || "Upload failed"));
-          } catch {
-            reject(new Error("Invalid response"));
-          }
-        } else {
-          reject(new Error(`Status: ${xhr.status}`));
-        }
-      };
-
-      xhr.onerror = () => reject(new Error("Network error"));
-      xhr.send(formData);
-    });
-  };
-
-  const uploadFiles = async (files: FileList) => {
-    if (files.length === 0 || !editingProject) return;
-
-    setIsUploading(true);
-    setUploadProgress(0);
-    const uploadedScreenshots = [...(editingProject.screenshots || [])];
-    let coverUrl = editingProject.image || "";
-
-    const totalFiles = files.length;
-    const fileProgresses = new Array(totalFiles).fill(0);
-
-    try {
-      for (let i = 0; i < totalFiles; i++) {
-        const url = await uploadFileWithProgress(files[i], (percent) => {
-          fileProgresses[i] = percent;
-          const averageProgress = Math.round(
-            fileProgresses.reduce((sum, p) => sum + p, 0) / totalFiles
-          );
-          setUploadProgress(averageProgress);
-        });
-
-        if (i === 0 && !editingProject.image) {
-          coverUrl = url;
-        } else {
-          uploadedScreenshots.push(url);
-        }
-      }
-      
-      setEditingProject({
-        ...editingProject,
-        image: coverUrl,
-        screenshots: uploadedScreenshots
-      });
-    } catch (err) {
-      console.error(err);
-      alert("Error uploading files");
-    } finally {
-      setIsUploading(false);
-      setIsDragging(false);
-      setUploadProgress(0);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files) {
-      uploadFiles(e.dataTransfer.files);
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      uploadFiles(e.target.files);
-    }
-  };
-
-  const removeScreenshot = (indexToRemove: number) => {
-    if (!editingProject) return;
-    const screenshots = (editingProject.screenshots || []).filter((_, idx) => idx !== indexToRemove);
-    setEditingProject({ ...editingProject, screenshots });
-  };
-
-  const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0 || !editingProject) return;
-    const file = e.target.files[0];
-    
-    setIsLogoUploading(true);
-    try {
-      const url = await uploadFileWithProgress(file, () => {});
-      setEditingProject({
-        ...editingProject,
-        image: url,
-      });
-    } catch (err) {
-      console.error("Logo upload error:", err);
-      alert("Error uploading logo image");
-    } finally {
-      setIsLogoUploading(false);
-    }
-  };
-
-  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    const file = e.target.files[0];
-
-    setIsResumeUploading(true);
-    setResumeUploadProgress(0);
-
-    try {
-      const url = await uploadFileWithProgress(file, (percent) => {
-        setResumeUploadProgress(percent);
-      });
-
-      // Update resumeUrl state
-      setResumeUrl(url);
-
-      // Save to settings table in database
-      const res = await fetch("/api/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: "resume_url", value: url }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to save resume URL to settings");
-      }
-
-      alert("Resume uploaded and saved successfully!");
-    } catch (err: any) {
-      console.error(err);
-      alert("Error uploading resume: " + err.message);
-    } finally {
-      setIsResumeUploading(false);
-      setResumeUploadProgress(0);
-    }
-  };
-
+  // Auth actions
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError("");
@@ -647,259 +309,126 @@ export default function AdminPage() {
     }
   };
 
-  // --- CRUD HANDLERS ---
-  const saveProject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingProject) return;
-    setIsSaving(true);
+  // Helper function for resume uploading
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
 
-    const formattedTags = tempTags 
-      ? tempTags.split(",").map((t) => t.replace(/['"]+/g, "").trim()).filter(Boolean) 
-      : (editingProject.tags || []).map((t) => t.replace(/['"]+/g, "").trim());
-    
-    // Manage demoUrl and githubUrl inside the links array
-    const links = [...(editingProject.links || [])];
-    
-    // Live Demo link
-    const demoIdx = links.findIndex(l => l.label.toLowerCase().includes("demo") || l.label.toLowerCase().includes("live"));
-    const demoHref = editingProject.demoUrl || "#";
-    if (demoIdx !== -1) {
-      links[demoIdx] = { ...links[demoIdx], href: demoHref };
-    } else {
-      links.unshift({ label: "Live Demo", href: demoHref, icon: "play_circle" });
-    }
-
-    // Source Code link
-    const gitIdx = links.findIndex(l => l.label.toLowerCase().includes("source") || l.label.toLowerCase().includes("github") || l.label.toLowerCase().includes("code"));
-    const githubHref = (editingProject as any).githubUrl || "#";
-    if (gitIdx !== -1) {
-      links[gitIdx] = { ...links[gitIdx], href: githubHref };
-    } else {
-      links.push({ label: "Source Code", href: githubHref, icon: "code" });
-    }
-
-    const updated = {
-      ...editingProject,
-      tags: formattedTags,
-      demoUrl: demoHref,
-      links: links
-    } as ProjectItem;
+    setIsResumeUploading(true);
+    setResumeUploadProgress(0);
 
     try {
-      await fetch("/api/projects", {
+      const xhr = new XMLHttpRequest();
+      const formData = new FormData();
+      formData.append("file", file);
+
+      xhr.open("POST", "/api/upload", true);
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = Math.round((event.loaded / event.total) * 100);
+          setResumeUploadProgress(percentComplete);
+        }
+      };
+
+      const url: string = await new Promise((resolve, reject) => {
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const res = JSON.parse(xhr.responseText);
+              resolve(res.url);
+            } catch {
+              reject(new Error("Invalid response"));
+            }
+          } else {
+            reject(new Error("Upload failed"));
+          }
+        };
+        xhr.onerror = () => reject(new Error("Network error"));
+        xhr.send(formData);
+      });
+
+      setResumeUrl(url);
+
+      const res = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
+        body: JSON.stringify({ key: "resume_url", value: url }),
       });
-      const res = await fetch("/api/projects");
-      const list = await res.json();
-      setProjects(list);
-    } catch (err) {
+
+      if (!res.ok) {
+        throw new Error("Failed to save resume URL to settings");
+      }
+
+      alert("Resume uploaded and saved successfully!");
+    } catch (err: any) {
       console.error(err);
+      alert("Error uploading resume: " + err.message);
     } finally {
-      setIsSaving(false);
-    }
-    setEditingProject(null);
-    resetTempStates();
-  };
-
-  const deleteProject = async (id: string) => {
-    try {
-      await fetch(`/api/projects/${id}`, { method: "DELETE" });
-      setProjects(projects.filter((p) => p.id !== id));
-    } catch (err) {
-      console.error(err);
+      setIsResumeUploading(false);
+      setResumeUploadProgress(0);
     }
   };
 
-  const saveExperience = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingExperience) return;
-    setIsSaving(true);
-
-    const formattedTech = tempTech ? tempTech.split(",").map((t) => t.trim()).filter(Boolean) : editingExperience.tech || [];
-    const formattedBullets = tempBullets ? tempBullets.split("\n").map((b) => b.trim()).filter(Boolean) : editingExperience.bullets || [];
-
-    const updated = {
-      ...editingExperience,
-      tech: formattedTech,
-      bullets: formattedBullets,
-    } as ExperienceItem;
-
+  const handleSaveTexts = async (title: string, highlight: string, description: string) => {
+    setIsSavingTexts(true);
     try {
-      await fetch("/api/experience", {
+      const resTitle = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
+        body: JSON.stringify({ key: "hero_title", value: title }),
       });
-      const res = await fetch("/api/experience");
-      const list = await res.json();
-      setExperiences(list);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSaving(false);
-    }
-    setEditingExperience(null);
-    resetTempStates();
-  };
-
-  const deleteExperience = async (id: number) => {
-    try {
-      await fetch(`/api/experience/${id}`, { method: "DELETE" });
-      setExperiences(experiences.filter((exp: any) => exp.id !== id));
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const saveSkill = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingSkill) return;
-    setIsSaving(true);
-
-    try {
-      await fetch("/api/skills", {
+      const resHighlight = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingSkill),
+        body: JSON.stringify({ key: "hero_title_highlight", value: highlight }),
       });
-      const res = await fetch("/api/skills");
-      const list = await res.json();
-      setSkills(list);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSaving(false);
-    }
-    setEditingSkill(null);
-  };
-
-  const deleteSkill = async (id: number) => {
-    try {
-      await fetch(`/api/skills/${id}`, { method: "DELETE" });
-      setSkills(skills.filter((s: any) => s.id !== id));
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const saveEdu = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingEdu) return;
-    setIsSaving(true);
-
-    try {
-      await fetch("/api/education", {
+      const resDesc = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingEdu),
+        body: JSON.stringify({ key: "hero_description", value: description }),
       });
-      const res = await fetch("/api/education");
-      const list = await res.json();
-      setEducation(list);
+      if (resTitle.ok && resHighlight.ok && resDesc.ok) {
+        alert("Homepage settings updated successfully!");
+        loadData();
+      } else {
+        alert("Failed to save homepage settings.");
+      }
     } catch (err) {
       console.error(err);
+      alert("Error saving settings.");
     } finally {
-      setIsSaving(false);
-    }
-    setEditingEdu(null);
-  };
-
-  const deleteEdu = async (id: number) => {
-    try {
-      await fetch(`/api/education/${id}`, { method: "DELETE" });
-      setEducation(education.filter((edu: any) => edu.id !== id));
-    } catch (err) {
-      console.error(err);
+      setIsSavingTexts(false);
     }
   };
 
-  const saveCert = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingCert) return;
-    setIsSaving(true);
-
-    try {
-      await fetch("/api/certifications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingCert),
-      });
-      const res = await fetch("/api/certifications");
-      const list = await res.json();
-      setCerts(list);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSaving(false);
-    }
-    setEditingCert(null);
-  };
-
-  const deleteCert = async (id: number) => {
-    try {
-      await fetch(`/api/certifications/${id}`, { method: "DELETE" });
-      setCerts(certs.filter((c: any) => c.id !== id));
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const saveTestimonial = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingTestimonial) return;
-    setIsSaving(true);
-
-    try {
-      await fetch("/api/testimonials", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingTestimonial),
-      });
-      const res = await fetch("/api/testimonials");
-      const list = await res.json();
-      setTestimonials(list);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSaving(false);
-    }
-    setEditingTestimonial(null);
-  };
-
-  const deleteTestimonial = async (id: number) => {
-    try {
-      await fetch(`/api/testimonials/${id}`, { method: "DELETE" });
-      setTestimonials(testimonials.filter((t: any) => t.id !== id));
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
+  // Rendering Loading Screen
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen bg-[#F9F9F9] flex items-center justify-center">
-        <span className="material-symbols-outlined animate-spin text-primary text-4xl">sync</span>
+      <div className="min-h-screen bg-surface-container flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <span className="material-symbols-outlined animate-spin text-primary text-4xl">sync</span>
+          <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">
+            Initializing Session...
+          </p>
+        </div>
       </div>
     );
   }
 
+  // Rendering Login Form
   if (!isAuthenticated) {
     return (
-      <div className="bg-[#F9F9F9] min-h-screen flex items-center justify-center p-4">
-        <Card interactive={false} className="w-full max-w-md bg-white p-8 border border-outline-variant/30 shadow-2xl rounded-2xl">
-          <div className="text-center mb-8">
-            <span className="font-label-sm text-label-sm text-primary uppercase tracking-widest mb-2 block font-semibold">
-              Admin Portal
-            </span>
-            <h2 className="text-2xl font-bold tracking-tight text-on-surface">
-              Administrator Login
-            </h2>
-            <p className="text-xs text-on-surface-variant mt-2 leading-relaxed">
-              Enter your credentials to manage your portfolio content.
+      <main className="min-h-screen bg-surface-container flex items-center justify-center p-4">
+        <Card interactive={false} className="w-full max-w-md bg-surface-container-lowest p-8 border border-outline-variant/30 shadow-2xl rounded-2xl">
+          <header className="text-center mb-8">
+            <span className="material-symbols-outlined text-primary text-5xl mb-2">admin_panel_settings</span>
+            <h1 className="text-2xl font-bold tracking-tight text-on-surface">Portfolio Studio</h1>
+            <p className="text-xs text-on-surface-variant mt-1.5 uppercase tracking-widest font-semibold">
+              Authorized Access Only
             </p>
-          </div>
+          </header>
+
           <form onSubmit={handleLogin} className="space-y-6">
             {authError && (
               <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-xl text-xs font-semibold text-center">
@@ -911,7 +440,7 @@ export default function AdminPage() {
               required
               value={loginUser}
               onChange={(e) => setLoginUser(e.target.value)}
-              placeholder="admin"
+              placeholder="Enter your username"
             />
             <Input
               label="Password"
@@ -925,7 +454,7 @@ export default function AdminPage() {
               type="submit"
               disabled={isAuthLoading}
               variant="primary"
-              className="w-full py-4 h-auto rounded-xl font-semibold border-none flex justify-center items-center gap-2"
+              className="w-full py-4 h-auto rounded-xl font-bold border-none flex justify-center items-center gap-2 cursor-pointer"
             >
               {isAuthLoading ? (
                 <>
@@ -933,38 +462,48 @@ export default function AdminPage() {
                   <span>Authenticating...</span>
                 </>
               ) : (
-                <span>Sign In</span>
+                <span>Login</span>
               )}
             </Button>
           </form>
         </Card>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="bg-[#F9F9F9] text-on-surface min-h-screen flex flex-col md:flex-row selection:bg-primary/20 selection:text-primary antialiased">
-      {/* Sidebar Navigation */}
-      <aside className="w-full md:w-64 bg-white border-r border-divider flex flex-col p-6 gap-8 shrink-0 md:h-screen sticky top-0">
-        <div className="flex flex-col gap-1">
+    <div className="min-h-screen bg-surface-container flex flex-col md:flex-row font-geist">
+      {/* Sidebar Control Panel */}
+      <aside className="w-full md:w-64 bg-surface-container-lowest border-r border-divider p-6 flex flex-col gap-8 shrink-0 md:h-screen md:sticky md:top-0">
+        <div>
           <div className="flex items-center gap-2">
             <h2 className="font-bold text-lg text-on-surface">{authUsername}</h2>
-            <span className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary font-bold rounded-full uppercase">Admin</span>
+            <span className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary font-bold rounded-full uppercase">
+              Admin
+            </span>
           </div>
           <p className="text-[11px] text-on-surface-variant">Portfolio Studio Control</p>
         </div>
 
         {/* Sidebar Tabs */}
         <nav className="flex flex-col gap-1.5 flex-grow">
-          {(["overview", "projects", "experience", "skills", "reviews", "users"] as TabType[]).map((tab) => {
+          {(["overview", "projects", "experience", "skills", "reviews", "users", "agent"] as TabType[]).map((tab) => {
             let icon = "dashboard";
             if (tab === "projects") icon = "grid_view";
             if (tab === "experience") icon = "work";
             if (tab === "skills") icon = "terminal";
             if (tab === "reviews") icon = "forum";
             if (tab === "users") icon = "group";
+            if (tab === "agent") icon = "smart_toy";
 
-            const label = tab === "skills" ? "Skills & Education" : tab === "users" ? "User Management" : tab;
+            const label =
+              tab === "skills"
+                ? "Skills & Education"
+                : tab === "users"
+                ? "User Management"
+                : tab === "agent"
+                ? "AI Assistant"
+                : tab;
 
             return (
               <button
@@ -1011,7 +550,10 @@ export default function AdminPage() {
               Admin Portal
             </span>
             <h1 className="font-display-lg text-display-lg leading-tight tracking-tight">
-              Manage Portfolio <span className="gradient-text bg-gradient-to-r from-primary to-primary-container bg-clip-text text-transparent">Content</span>
+              Manage Portfolio{" "}
+              <span className="gradient-text bg-gradient-to-r from-primary to-primary-container bg-clip-text text-transparent">
+                Content
+              </span>
             </h1>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl text-green-600 text-xs font-semibold uppercase tracking-wider self-start md:self-auto">
@@ -1023,1078 +565,62 @@ export default function AdminPage() {
           </div>
         </header>
 
-        {/* Tab Contents */}
-        {activeTab === "overview" && (
-          <div className="space-y-12">
-            {/* Quick Stats Bento */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <Card interactive={false} className="p-6 bg-surface-container-lowest border border-outline-variant/10 flex flex-col gap-2">
-                <span className="material-symbols-outlined text-primary text-3xl">grid_view</span>
-                <span className="text-3xl font-extrabold">{projects.length}</span>
-                <span className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Total Projects</span>
-              </Card>
-              <Card interactive={false} className="p-6 bg-surface-container-lowest border border-outline-variant/10 flex flex-col gap-2">
-                <span className="material-symbols-outlined text-primary text-3xl">work</span>
-                <span className="text-3xl font-extrabold">{experiences.length}</span>
-                <span className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Timeline Experience</span>
-              </Card>
-              <Card interactive={false} className="p-6 bg-surface-container-lowest border border-outline-variant/10 flex flex-col gap-2">
-                <span className="material-symbols-outlined text-primary text-3xl">terminal</span>
-                <span className="text-3xl font-extrabold">{skills.length + aiSpecs.length + databases.length}</span>
-                <span className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Total Skills & Tools</span>
-              </Card>
-              <Card interactive={false} className="p-6 bg-surface-container-lowest border border-outline-variant/10 flex flex-col gap-2">
-                <span className="material-symbols-outlined text-primary text-3xl">forum</span>
-                <span className="text-3xl font-extrabold">{testimonials.length}</span>
-                <span className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Partner Reviews</span>
-              </Card>
-            </div>
-
-            <Card interactive={false} className="p-8 border border-outline-variant/20 bg-surface-container-low flex flex-col gap-4">
-              <h3 className="font-title-md text-title-md font-bold">Welcome to your Portfolio Studio</h3>
-              <p className="text-on-surface-variant text-sm max-w-2xl leading-relaxed">
-                This administration interface operates in local preview mode. Any modifications made here will affect the state of the screens in your active session. Once you are satisfied with the updates, the data configurations can be permanently exported.
-              </p>
-              <div className="flex gap-4 mt-2">
-                <Button variant="primary" onClick={() => setActiveTab("projects")} className="border-none">
-                  Manage Projects
-                </Button>
-                <Button variant="outline" onClick={() => setActiveTab("experience")}>
-                  Manage Experience
-                </Button>
-              </div>
-            </Card>
-
-            {/* Resume / CV Management Card */}
-            <Card interactive={false} className="p-8 border border-outline-variant/20 bg-surface-container-lowest flex flex-col gap-6">
-              <div className="flex flex-col gap-1">
-                <h3 className="font-title-md text-title-md font-bold flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">description</span>
-                  Resume & CV Settings
-                </h3>
-                <p className="text-on-surface-variant text-xs">
-                  Upload your professional resume or CV. All download buttons across the website will be linked to this file.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-4 max-w-xl">
-                <div className="flex items-center gap-4">
-                  <div className="flex-grow">
-                    <input
-                      type="text"
-                      className="w-full px-4 h-12 bg-surface-container-low border border-outline-variant/30 rounded-default font-geist text-sm text-on-surface focus:outline-none focus:border-primary"
-                      value={resumeUrl}
-                      readOnly
-                      placeholder="No resume uploaded yet"
-                    />
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => document.getElementById("resume-file-input")?.click()}
-                    disabled={isResumeUploading}
-                    className="h-12"
-                  >
-                    {isResumeUploading ? `Uploading... (${resumeUploadProgress}%)` : "Upload PDF"}
-                  </Button>
-                  <input
-                    type="file"
-                    id="resume-file-input"
-                    accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                    className="hidden"
-                    onChange={handleResumeUpload}
-                  />
-                </div>
-
-                {resumeUrl && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-green-600 font-bold flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[16px]">check_circle</span> Active CV
-                    </span>
-                    <a
-                      href={resumeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline font-semibold flex items-center gap-1"
-                    >
-                      Preview File <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-                    </a>
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {activeTab === "projects" && (
-          <div className="space-y-8 animate-fade-in">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-bold">Projects Grid Listing</h2>
-                <p className="text-xs text-on-surface-variant mt-1">
-                  Drag and drop cards to rearrange projects. The top 2 will be shown on the home page.
-                </p>
-              </div>
-              <Button
-                variant="primary"
-                onClick={() => {
-                  setEditingProject({});
-                  resetTempStates();
-                }}
-                className="flex items-center gap-2 border-none self-start"
-              >
-                <span className="material-symbols-outlined text-sm">add</span> Add Project
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {projects.map((project, idx) => (
-                <Card 
-                  key={project.id} 
-                  interactive={false} 
-                  draggable
-                  onDragStart={(e) => handleProjectDragStart(e, project.id)}
-                  onDragOver={handleProjectDragOver}
-                  onDrop={(e) => handleProjectDrop(e, project.id)}
-                  className={`p-6 flex flex-col justify-between border transition-all cursor-move ${
-                    draggedProjectId === project.id 
-                      ? "opacity-40 border-primary border-dashed bg-primary/5" 
-                      : "border-outline-variant/20 hover:border-primary/40 bg-surface-container-lowest shadow-sm hover:shadow-md"
-                  }`}
-                >
-                  <div>
-                    <div className="aspect-[16/9] rounded-xl overflow-hidden mb-4 bg-surface-dim relative group">
-                      {project.image && [".mp4", ".mov", ".webm", ".ogg", ".m4v"].some(ext => project.image.toLowerCase().endsWith(ext) || project.image.toLowerCase().includes("video")) ? (
-                        <video src={project.image} className="w-full h-full object-cover" muted loop playsInline />
-                      ) : (
-                        <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
-                      )}
-                      <div className="absolute top-2 left-2 flex gap-1.5 z-10">
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider backdrop-blur-md shadow-sm ${
-                          idx < 2 
-                            ? "bg-emerald-500/95 text-white border border-emerald-400/20" 
-                            : "bg-surface-container-high/90 text-on-surface border border-outline-variant/30"
-                        }`}>
-                          {idx === 0 ? "1st" : idx === 1 ? "2nd" : idx === 2 ? "3rd" : `${idx + 1}th`} {idx < 2 && "• Homepage"}
-                        </span>
-                      </div>
-                      <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-black/80 transition-colors shadow-sm" title="Drag to reorder">
-                        <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold px-2.5 py-1 bg-primary/10 text-primary rounded-full uppercase">
-                        {project.type}
-                      </span>
-                      <div className="flex flex-wrap gap-1.5 justify-end max-w-[70%]">
-                        {project.tags.slice(0, 3).map((t) => (
-                          <Chip key={t} active={false} className="py-0.5 px-2 text-[10px] cursor-default border-none bg-surface-container-low pointer-events-none">
-                            {t}
-                          </Chip>
-                        ))}
-                        {project.tags.length > 3 && (
-                          <Chip key="more" active={false} className="py-0.5 px-2 text-[10px] cursor-default border-none bg-surface-container-low pointer-events-none">
-                            + {project.tags.length - 3}
-                          </Chip>
-                        )}
-                      </div>
-                    </div>
-                    <h3 className="font-title-md text-title-md font-bold mb-2">{project.title}</h3>
-                    <p className="text-xs text-on-surface-variant line-clamp-3 leading-relaxed">{project.description}</p>
-                  </div>
-                  <div className="flex gap-3 pt-6 border-t border-outline-variant/10 mt-6 justify-end">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        const githubLink = project.links?.find(l => l.label.toLowerCase().includes("source") || l.label.toLowerCase().includes("github") || l.label.toLowerCase().includes("code"))?.href || "";
-                        setEditingProject({
-                          ...project,
-                          githubUrl: githubLink
-                        } as any);
-                        setTempTags(project.tags.join(", "));
-                      }}
-                      className="px-4 py-2 text-xs"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => deleteProject(project.id)}
-                      className="px-4 py-2 text-xs bg-red-500/10 text-red-600 border border-red-500/20 hover:bg-red-500 hover:text-white"
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </Card>
-              ))}
+        {/* Tab Contents loading state */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-24">
+            <div className="flex flex-col items-center gap-2">
+              <span className="material-symbols-outlined animate-spin text-primary text-3xl">sync</span>
+              <p className="text-xs font-semibold text-on-surface-variant">Syncing records...</p>
             </div>
           </div>
-        )}
-
-        {activeTab === "experience" && (
-          <div className="space-y-8">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold">Timeline Experience Listings</h2>
-              <Button
-                variant="primary"
-                onClick={() => {
-                  setEditingExperience({});
-                  resetTempStates();
-                }}
-                className="flex items-center gap-2 border-none"
-              >
-                <span className="material-symbols-outlined text-sm">add</span> Add Experience
-              </Button>
-            </div>
-
-            <div className="space-y-6">
-              {experiences.map((exp) => (
-                <Card key={`${exp.company}-${exp.role}`} interactive={false} className="p-6 border border-outline-variant/20 bg-surface-container-lowest flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-bold text-on-surface">{exp.company}</h3>
-                      <span className="px-2.5 py-0.5 bg-primary/10 text-primary text-[10px] font-bold uppercase rounded-full">
-                        {exp.badge}
-                      </span>
-                    </div>
-                    <p className="text-sm font-semibold text-secondary">{exp.role} — <span className="text-xs text-on-surface-variant font-medium">{exp.period}</span></p>
-                    <ul className="text-xs text-on-surface-variant space-y-1 pt-1 list-disc pl-4">
-                      {exp.bullets.map((b, idx) => (
-                        <li key={idx}>{b}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="flex gap-2 shrink-0 self-end md:self-center">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setEditingExperience(exp);
-                        setTempTech(exp.tech.join(", "));
-                        setTempBullets(exp.bullets.join("\n"));
-                      }}
-                      className="px-4 py-2 text-xs"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => deleteExperience((exp as any).id)}
-                      className="px-4 py-2 text-xs bg-red-500/10 text-red-600 border border-red-500/20 hover:bg-red-500 hover:text-white"
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === "skills" && (
-          <div className="space-y-12">
-            {/* Technical Core Section */}
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold">Technical Core Languages/Frameworks</h2>
-                <Button variant="primary" onClick={() => setEditingSkill({})} className="flex items-center gap-2 border-none">
-                  <span className="material-symbols-outlined text-sm">add</span> Add Skill
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {skills.map((skill) => (
-                  <Card key={skill.name} interactive={false} className="p-4 border border-outline-variant/20 bg-surface-container-lowest flex items-center justify-between gap-3">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-sm">{skill.name}</span>
-                      <span className="text-[10px] text-on-surface-variant">{skill.subtitle}</span>
-                    </div>
-                    <div className="flex gap-1.5">
-                      <button onClick={() => setEditingSkill(skill)} className="text-secondary hover:text-primary transition-colors cursor-pointer">
-                        <span className="material-symbols-outlined text-base">edit</span>
-                      </button>
-                      <button onClick={() => deleteSkill((skill as any).id)} className="text-secondary hover:text-red-500 transition-colors cursor-pointer">
-                        <span className="material-symbols-outlined text-base">delete</span>
-                      </button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* Education Settings Section */}
-            <div className="space-y-6 pt-6 border-t border-divider">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold">Education History</h2>
-                <Button variant="primary" onClick={() => setEditingEdu({})} className="flex items-center gap-2 border-none">
-                  <span className="material-symbols-outlined text-sm">add</span> Add Education
-                </Button>
-              </div>
-              <div className="space-y-4">
-                {education.map((edu) => (
-                  <Card key={edu.degree} interactive={false} className="p-6 border border-outline-variant/20 bg-surface-container-lowest flex flex-col sm:flex-row items-center justify-between gap-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 bg-surface-dim rounded-lg overflow-hidden shrink-0">
-                        <img src={edu.image} alt={edu.school} className="w-full h-full object-cover" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm">{edu.degree}</h4>
-                        <p className="text-xs text-secondary">{edu.school} — {edu.location}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" onClick={() => setEditingEdu(edu)} className="px-4 py-2 text-xs">
-                        Edit
-                      </Button>
-                      <Button variant="secondary" onClick={() => deleteEdu((edu as any).id)} className="px-4 py-2 text-xs bg-red-500/10 text-red-600 border border-red-500/20 hover:bg-red-500 hover:text-white">
-                        Delete
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* Certifications Section */}
-            <div className="space-y-6 pt-6 border-t border-divider">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold">Certifications Grid</h2>
-                <Button variant="primary" onClick={() => setEditingCert({})} className="flex items-center gap-2 border-none">
-                  <span className="material-symbols-outlined text-sm">add</span> Add Certificate
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {certs.map((c) => (
-                  <Card key={c.title} interactive={false} className="p-6 border border-outline-variant/20 bg-surface-container-lowest flex items-center justify-between gap-4">
-                    <div>
-                      <h4 className="font-bold text-sm">{c.title}</h4>
-                      <p className="text-xs text-on-surface-variant">{c.subtitle}</p>
-                    </div>
-                    <div className="flex gap-2 shrink-0">
-                      <Button variant="outline" onClick={() => setEditingCert(c)} className="px-3 py-1.5 text-xs">
-                        Edit
-                      </Button>
-                      <Button variant="secondary" onClick={() => deleteCert((c as any).id)} className="px-3 py-1.5 text-xs bg-red-500/10 text-red-600 border border-red-500/20 hover:bg-red-500 hover:text-white">
-                        Delete
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "reviews" && (
-          <div className="space-y-8">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold">Partner Testimonials</h2>
-              <Button variant="primary" onClick={() => setEditingTestimonial({})} className="flex items-center gap-2 border-none">
-                <span className="material-symbols-outlined text-sm">add</span> Add Review
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {testimonials.map((test, idx) => (
-                <Card key={idx} interactive={false} className="p-6 border border-outline-variant/20 bg-surface-container-lowest flex flex-col justify-between">
-                  <p className="text-xs text-on-surface-variant italic mb-6 leading-relaxed">"{test.quote}"</p>
-                  <div className="flex items-center justify-between pt-4 border-t border-outline-variant/10">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                        {test.avatar}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-xs">{test.role}</h4>
-                        <p className="text-[10px] text-on-surface-variant">{test.company}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" onClick={() => setEditingTestimonial(test)} className="px-3 py-1.5 text-xs">
-                        Edit
-                      </Button>
-                      <Button variant="secondary" onClick={() => deleteTestimonial((test as any).id)} className="px-3 py-1.5 text-xs bg-red-500/10 text-red-600 border border-red-500/20 hover:bg-red-500 hover:text-white">
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === "users" && (
-          <div className="space-y-8">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-on-surface">User Accounts</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-              {/* Left Column: Users List */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-on-surface">Registered Users</h3>
-                <div className="bg-white border border-outline-variant/30 rounded-2xl divide-y divide-outline-variant/20 overflow-hidden shadow-sm">
-                  {usersList.map((usr) => (
-                    <div key={usr.id} className="p-4 flex items-center justify-between hover:bg-surface-container-lowest transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
-                          {usr.username.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-sm text-on-surface">{usr.username}</p>
-                          <p className="text-[10px] text-on-surface-variant">
-                            Created: {new Date(usr.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setEditingUser(usr);
-                            setEditUsername(usr.username);
-                            setEditPassword("");
-                          }}
-                          className="px-3 py-1.5 text-xs h-auto"
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          onClick={() => handleDeleteUser(usr.id)}
-                          className="px-3 py-1.5 text-xs h-auto bg-red-500/10 text-red-600 border border-red-500/20 hover:bg-red-500 hover:text-white"
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right Column: Create User Form */}
-              <Card interactive={false} className="p-8 border border-outline-variant/30 bg-surface-container-lowest shadow-sm rounded-2xl">
-                <div className="mb-6">
-                  <h3 className="text-lg font-bold tracking-tight text-on-surface">Create New Admin User</h3>
-                  <p className="text-xs text-on-surface-variant mt-1">
-                    Add another administrator account to manage this portfolio.
-                  </p>
-                </div>
-                
-                <form onSubmit={handleCreateUser} className="space-y-6">
-                  {regError && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-xl text-xs font-semibold text-center">
-                      {regError}
-                    </div>
-                  )}
-                  {regMessage && (
-                    <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-600 rounded-xl text-xs font-semibold text-center">
-                      {regMessage}
-                    </div>
-                  )}
-                  
-                  <Input
-                    label="New Username"
-                    required
-                    value={regUsername}
-                    onChange={(e) => setRegUsername(e.target.value)}
-                    placeholder="e.g. gaurav"
-                  />
-                  
-                  <Input
-                    label="Password"
-                    required
-                    type="password"
-                    value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
-                    placeholder="••••••••"
-                  />
-                  
-                  <Button
-                    type="submit"
-                    disabled={isRegistering}
-                    variant="primary"
-                    className="w-full py-4 h-auto rounded-xl font-semibold border-none flex justify-center items-center gap-2"
-                  >
-                    {isRegistering ? (
-                      <>
-                        <span className="material-symbols-outlined animate-spin text-sm">sync</span>
-                        <span>Creating User...</span>
-                      </>
-                    ) : (
-                      <span>Create User</span>
-                    )}
-                  </Button>
-                </form>
-              </Card>
-            </div>
-
-            {/* Edit User Modal */}
-            {editingUser && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-                <Card interactive={false} className="w-full max-w-md bg-surface-container-lowest p-8 border border-outline-variant/30 shadow-2xl rounded-2xl">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-title-md text-title-md font-bold">Edit User Details</h3>
-                    <button
-                      onClick={() => {
-                        setEditingUser(null);
-                        setEditUsername("");
-                        setEditPassword("");
-                        setEditError("");
-                        setEditMessage("");
-                      }}
-                      className="text-secondary hover:text-on-surface cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined">close</span>
-                    </button>
-                  </div>
-                  <form onSubmit={handleEditUser} className="space-y-6">
-                    {editError && (
-                      <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-xl text-xs font-semibold text-center">
-                        {editError}
-                      </div>
-                    )}
-                    {editMessage && (
-                      <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-600 rounded-xl text-xs font-semibold text-center">
-                        {editMessage}
-                      </div>
-                    )}
-                    <Input
-                      label="Username"
-                      required
-                      value={editUsername}
-                      onChange={(e) => setEditUsername(e.target.value)}
-                    />
-                    <Input
-                      label="New Password (Leave blank to keep current)"
-                      type="password"
-                      value={editPassword}
-                      onChange={(e) => setEditPassword(e.target.value)}
-                      placeholder="••••••••"
-                    />
-                    <Button
-                      type="submit"
-                      disabled={isEditingUser}
-                      variant="primary"
-                      className="w-full py-4 h-auto rounded-xl font-semibold border-none flex justify-center items-center gap-2"
-                    >
-                      {isEditingUser ? (
-                        <>
-                          <span className="material-symbols-outlined animate-spin text-sm">sync</span>
-                          <span>Updating User...</span>
-                        </>
-                      ) : (
-                        <span>Save Changes</span>
-                      )}
-                    </Button>
-                  </form>
-                </Card>
-              </div>
+        ) : (
+          <>
+            {activeTab === "overview" && (
+              <OverviewTab
+                projectsCount={projects.length}
+                experiencesCount={experiences.length}
+                skillsCount={skills.length}
+                reviewsCount={testimonials.length}
+                resumeUrl={resumeUrl}
+                isResumeUploading={isResumeUploading}
+                resumeUploadProgress={resumeUploadProgress}
+                handleResumeUpload={handleResumeUpload}
+                setActiveTab={setActiveTab}
+                heroTitle={heroTitle}
+                setHeroTitle={setHeroTitle}
+                heroTitleHighlight={heroTitleHighlight}
+                setHeroTitleHighlight={setHeroTitleHighlight}
+                heroDescription={heroDescription}
+                setHeroDescription={setHeroDescription}
+                isSavingTexts={isSavingTexts}
+                handleSaveTexts={handleSaveTexts}
+                geminiApiKey={geminiApiKey}
+                setGeminiApiKey={setGeminiApiKey}
+              />
             )}
-          </div>
+
+            {activeTab === "projects" && <ProjectsTab projects={projects} loadData={loadData} />}
+
+            {activeTab === "experience" && <ExperienceTab experiences={experiences} loadData={loadData} />}
+
+            {activeTab === "skills" && (
+              <SkillsTab
+                skills={skills}
+                education={education}
+                certs={certs}
+                aiSpecs={aiSpecs}
+                databases={databases}
+                loadData={loadData}
+              />
+            )}
+
+            {activeTab === "reviews" && <ReviewsTab testimonials={testimonials} loadData={loadData} />}
+
+            {activeTab === "users" && <UsersTab usersList={usersList} fetchUsers={fetchUsers} />}
+          </>
         )}
 
-        {/* --- FORM MODALS --- */}
-
-        {/* Project Edit Modal */}
-        {editingProject && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-            <Card interactive={false} className="w-full max-w-4xl bg-surface-container-lowest max-h-[90vh] overflow-y-auto p-8 border border-outline-variant/30 shadow-2xl">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-title-md text-title-md font-bold">
-                  {editingProject.id ? "Edit Project Details" : "Create New Project"}
-                </h3>
-                <button onClick={() => setEditingProject(null)} className="text-secondary hover:text-on-surface cursor-pointer">
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
-              <form onSubmit={saveProject} className="space-y-6">
-                <Input
-                  label="Project Title"
-                  required
-                  value={editingProject.title || ""}
-                  onChange={(e) => setEditingProject({ ...editingProject, title: e.target.value })}
-                  placeholder="CourseCrafter AI"
-                />
-                <Input
-                  label="Unique Project ID"
-                  required
-                  disabled={!!editingProject.id}
-                  value={editingProject.id || ""}
-                  onChange={(e) => setEditingProject({ ...editingProject, id: e.target.value.toLowerCase().replace(/\s+/g, "-") })}
-                  placeholder="coursecrafter-ai"
-                />
-                <TextArea
-                  label="Project Description"
-                  required
-                  value={editingProject.description || ""}
-                  onChange={(e) => setEditingProject({ ...editingProject, description: e.target.value })}
-                  placeholder="Describe your project here..."
-                />
-                 <div className="flex flex-col gap-2">
-                  <div className="flex gap-2 items-end">
-                    <Input
-                      label="Logo URL"
-                      required
-                      value={editingProject.image || ""}
-                      onChange={(e) => setEditingProject({ ...editingProject, image: e.target.value })}
-                      placeholder="https://..."
-                      className="flex-grow"
-                    />
-                    <label 
-                      htmlFor="logo-file-upload" 
-                      className="h-12 px-4 rounded-default border border-[#bdc9c94d] bg-white text-secondary font-semibold text-xs flex items-center justify-center cursor-pointer hover:bg-surface-container transition-colors shrink-0"
-                    >
-                      {isLogoUploading ? (
-                        <span className="material-symbols-outlined animate-spin text-sm">sync</span>
-                      ) : (
-                        <span>Upload Logo</span>
-                      )}
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      id="logo-file-upload"
-                      className="hidden"
-                      onChange={handleLogoSelect}
-                      disabled={isLogoUploading}
-                    />
-                  </div>
-                  {editingProject.image && (
-                    <div className="mt-2 w-24 h-24 rounded-lg overflow-hidden border border-outline-variant/30">
-                      {(() => {
-                        const imgUrl = editingProject.image;
-                        const isVideo = imgUrl && [".mp4", ".mov", ".webm", ".ogg", ".m4v"].some(ext => imgUrl.toLowerCase().endsWith(ext) || imgUrl.toLowerCase().includes("video"));
-                        return isVideo ? (
-                          <video src={editingProject.image} className="w-full h-full object-cover" muted loop playsInline />
-                        ) : (
-                          <img src={editingProject.image} alt="Preview" className="w-full h-full object-cover" />
-                        );
-                      })()}
-                    </div>
-                  )}
-                </div>
-
-                {/* Unified Drag & Drop Upload Zone */}
-                <div className="flex flex-col gap-2 border-t border-outline-variant/10 pt-4">
-                  <label className="font-geist text-xs font-semibold uppercase tracking-wider text-[#717171]">
-                    Upload Media & Screenshots
-                  </label>
-                  <div 
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${
-                      isDragging ? "border-primary bg-primary/5" : "border-outline-variant/30 bg-surface-container-low"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-3xl text-primary mb-2">upload_file</span>
-                    <p className="text-xs font-semibold text-on-surface">Drag & drop files here, or</p>
-                    <label htmlFor="unified-file-upload" className="text-xs text-primary font-bold cursor-pointer hover:underline inline-block mt-1">
-                      browse from device
-                    </label>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*,video/*"
-                      id="unified-file-upload"
-                      className="hidden"
-                      onChange={handleFileSelect}
-                      disabled={isUploading}
-                    />
-                    <p className="text-[10px] text-on-surface-variant mt-2">
-                      First file sets Cover Image. Remaining files are added to Screenshots.
-                    </p>
-                    {isUploading && (
-                      <div className="flex items-center justify-center gap-2 mt-2">
-                        <span className="material-symbols-outlined animate-spin text-primary text-sm">sync</span>
-                        <span className="text-xs text-primary font-semibold">Uploading...</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* External Media URLs */}
-                <div className="flex flex-col gap-2 border-t border-outline-variant/10 pt-4">
-                  <div className="flex gap-2 items-end">
-                    <Input
-                      label="Add Media by URL"
-                      value={tempMediaUrl}
-                      onChange={(e) => setTempMediaUrl(e.target.value)}
-                      placeholder="Paste image/video URLs (comma-separated or line-breaks)"
-                      className="flex-grow"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleAddMediaUrl}
-                      className="h-12 px-4 shrink-0"
-                    >
-                      Add URL
-                    </Button>
-                  </div>
-                  <p className="text-[10px] text-on-surface-variant">
-                    You can paste multiple URLs separated by commas or lines to add them instantly.
-                  </p>
-                </div>
-
-                {/* Screenshots Previews */}
-                {editingProject.screenshots && editingProject.screenshots.length > 0 && (
-                  <div className="flex flex-col gap-2 border-t border-outline-variant/10 pt-4">
-                    <label className="font-geist text-xs font-semibold uppercase tracking-wider text-[#717171]">
-                      Project Screenshots / Videos ({editingProject.screenshots.length})
-                    </label>
-                    <div className="grid grid-cols-4 gap-3 mt-2">
-                       {editingProject.screenshots.map((screenshot, idx) => {
-                        const isVideo = screenshot && [".mp4", ".mov", ".webm", ".ogg", ".m4v"].some(ext => screenshot.toLowerCase().endsWith(ext) || screenshot.toLowerCase().includes("video"));
-                        return (
-                          <div
-                            key={idx}
-                            draggable
-                            onDragStart={(e) => handleScreenshotDragStart(e, idx)}
-                            onDragOver={handleScreenshotDragOver}
-                            onDrop={(e) => handleScreenshotDrop(e, idx)}
-                            className="relative aspect-[9/16] rounded-lg overflow-hidden border border-outline-variant/30 group cursor-grab active:cursor-grabbing hover:border-primary/50 transition-all"
-                            title="Drag to reorder"
-                          >
-                            {isVideo ? (
-                              <video src={screenshot} className="w-full h-full object-cover pointer-events-none" muted loop playsInline />
-                            ) : (
-                              <img src={screenshot} alt={`Screenshot ${idx + 1}`} className="w-full h-full object-cover pointer-events-none" />
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => removeScreenshot(idx)}
-                              className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-600/80 text-white flex items-center justify-center cursor-pointer hover:bg-red-700 transition-colors"
-                            >
-                              <span className="material-symbols-outlined text-[14px]">close</span>
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                <Input
-                  label="Tags (Comma separated)"
-                  value={tempTags}
-                  onChange={(e) => setTempTags(e.target.value)}
-                  placeholder="Next.js, Tailwind, Gemini AI"
-                />
-                <Input
-                  label="Website Link (Live Demo)"
-                  value={editingProject.demoUrl || ""}
-                  onChange={(e) => setEditingProject({ ...editingProject, demoUrl: e.target.value })}
-                  placeholder="https://yourdemo.com"
-                />
-                <Input
-                  label="Source Code Link (GitHub)"
-                  value={(editingProject as any).githubUrl || ""}
-                  onChange={(e) => setEditingProject({ ...editingProject, githubUrl: e.target.value } as any)}
-                  placeholder="https://github.com/..."
-                />
-                <div className="flex flex-col gap-2">
-                  <label className="font-geist text-xs font-semibold uppercase tracking-wider text-[#717171]">
-                    Project Category
-                  </label>
-                  <select
-                    className="w-full px-4 h-12 bg-[#F7F7F7] border-2 border-transparent rounded-default font-geist text-sm text-[#222222] focus:outline-none focus:border-primary"
-                    value={editingProject.type || "web"}
-                    onChange={(e) => setEditingProject({ ...editingProject, type: e.target.value as "web" | "app" })}
-                  >
-                    <option value="web">Web Application</option>
-                    <option value="app">Mobile Application</option>
-                  </select>
-                </div>
-                <div className="flex gap-4 pt-4 border-t border-outline-variant/20">
-                  <Button type="button" variant="secondary" onClick={() => setEditingProject(null)} className="w-1/2">
-                    Cancel
-                  </Button>
-                  <Button type="submit" variant="primary" className="w-1/2 border-none">
-                    Save Changes
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          </div>
-        )}
-
-        {/* Experience Edit Modal */}
-        {editingExperience && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <Card interactive={false} className="w-full max-w-lg bg-surface-container-lowest max-h-[90vh] overflow-y-auto p-8 border border-outline-variant/30 shadow-2xl">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-title-md text-title-md font-bold">
-                  {editingExperience.company ? "Edit Experience" : "Create New Experience"}
-                </h3>
-                <button onClick={() => setEditingExperience(null)} className="text-secondary hover:text-on-surface cursor-pointer">
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
-              <form onSubmit={saveExperience} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="Company Name"
-                    required
-                    value={editingExperience.company || ""}
-                    onChange={(e) => setEditingExperience({ ...editingExperience, company: e.target.value })}
-                    placeholder="Terminal 2"
-                  />
-                  <Input
-                    label="Role Title"
-                    required
-                    value={editingExperience.role || ""}
-                    onChange={(e) => setEditingExperience({ ...editingExperience, role: e.target.value })}
-                    placeholder="Full Stack Developer"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="Employment Period"
-                    required
-                    value={editingExperience.period || ""}
-                    onChange={(e) => setEditingExperience({ ...editingExperience, period: e.target.value })}
-                    placeholder="Sep 2025 - Present"
-                  />
-                  <Input
-                    label="Badge label"
-                    required
-                    value={editingExperience.badge || ""}
-                    onChange={(e) => setEditingExperience({ ...editingExperience, badge: e.target.value })}
-                    placeholder="Current"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="font-geist text-xs font-semibold uppercase tracking-wider text-[#717171]">
-                    Badge Styling Type
-                  </label>
-                  <select
-                    className="w-full px-4 h-12 bg-[#F7F7F7] border-2 border-transparent rounded-default font-geist text-sm text-[#222222] focus:outline-none focus:border-primary"
-                    value={editingExperience.badgeType || "primary"}
-                    onChange={(e) => setEditingExperience({ ...editingExperience, badgeType: e.target.value as "primary" | "secondary" })}
-                  >
-                    <option value="primary">Primary (Teal color)</option>
-                    <option value="secondary">Secondary (Neutral color)</option>
-                  </select>
-                </div>
-                <TextArea
-                  label="Work Bullets (One per line)"
-                  required
-                  value={tempBullets}
-                  onChange={(e) => setTempBullets(e.target.value)}
-                  placeholder="Engineered scalable web ecosystems...&#10;Architected complex state management..."
-                />
-                <Input
-                  label="Technologies Used (Comma separated)"
-                  value={tempTech}
-                  onChange={(e) => setTempTech(e.target.value)}
-                  placeholder="Next.js, TypeScript, Redux"
-                />
-                <div className="flex gap-4 pt-4 border-t border-outline-variant/20">
-                  <Button type="button" variant="secondary" onClick={() => setEditingExperience(null)} className="w-1/2">
-                    Cancel
-                  </Button>
-                  <Button type="submit" variant="primary" className="w-1/2 border-none">
-                    Save Changes
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          </div>
-        )}
-
-        {/* Skill Edit Modal */}
-        {editingSkill && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <Card interactive={false} className="w-full max-w-sm bg-surface-container-lowest p-8 border border-outline-variant/30 shadow-2xl">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-title-md text-title-md font-bold">
-                  {editingSkill.name ? "Edit Skill" : "Create New Skill"}
-                </h3>
-                <button onClick={() => setEditingSkill(null)} className="text-secondary hover:text-on-surface cursor-pointer">
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
-              <form onSubmit={saveSkill} className="space-y-6">
-                <Input
-                  label="Skill Name"
-                  required
-                  value={editingSkill.name || ""}
-                  onChange={(e) => setEditingSkill({ ...editingSkill, name: e.target.value })}
-                  placeholder="Next.js"
-                />
-                <Input
-                  label="Subtitle Description"
-                  required
-                  value={editingSkill.subtitle || ""}
-                  onChange={(e) => setEditingSkill({ ...editingSkill, subtitle: e.target.value })}
-                  placeholder="Fullstack Framework"
-                />
-                <div className="flex gap-4 pt-4 border-t border-outline-variant/20">
-                  <Button type="button" variant="secondary" onClick={() => setEditingSkill(null)} className="w-1/2">
-                    Cancel
-                  </Button>
-                  <Button type="submit" variant="primary" className="w-1/2 border-none">
-                    Save Changes
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          </div>
-        )}
-
-        {/* Education Edit Modal */}
-        {editingEdu && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <Card interactive={false} className="w-full max-w-md bg-surface-container-lowest p-8 border border-outline-variant/30 shadow-2xl">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-title-md text-title-md font-bold">
-                  {editingEdu.degree ? "Edit Education" : "Create New Education"}
-                </h3>
-                <button onClick={() => setEditingEdu(null)} className="text-secondary hover:text-on-surface cursor-pointer">
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
-              <form onSubmit={saveEdu} className="space-y-6">
-                <Input
-                  label="Degree Title"
-                  required
-                  value={editingEdu.degree || ""}
-                  onChange={(e) => setEditingEdu({ ...editingEdu, degree: e.target.value })}
-                  placeholder="Bachelor of Technology"
-                />
-                <Input
-                  label="School Name"
-                  required
-                  value={editingEdu.school || ""}
-                  onChange={(e) => setEditingEdu({ ...editingEdu, school: e.target.value })}
-                  placeholder="MIT World Peace University"
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="Location"
-                    required
-                    value={editingEdu.location || ""}
-                    onChange={(e) => setEditingEdu({ ...editingEdu, location: e.target.value })}
-                    placeholder="Pune, India"
-                  />
-                  <Input
-                    label="Image URL"
-                    required
-                    value={editingEdu.image || ""}
-                    onChange={(e) => setEditingEdu({ ...editingEdu, image: e.target.value })}
-                    placeholder="https://..."
-                  />
-                </div>
-                <div className="flex gap-4 pt-4 border-t border-outline-variant/20">
-                  <Button type="button" variant="secondary" onClick={() => setEditingEdu(null)} className="w-1/2">
-                    Cancel
-                  </Button>
-                  <Button type="submit" variant="primary" className="w-1/2 border-none">
-                    Save Changes
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          </div>
-        )}
-
-        {/* Certification Edit Modal */}
-        {editingCert && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <Card interactive={false} className="w-full max-w-sm bg-surface-container-lowest p-8 border border-outline-variant/30 shadow-2xl">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-title-md text-title-md font-bold">
-                  {editingCert.title ? "Edit Certification" : "Create New Certification"}
-                </h3>
-                <button onClick={() => setEditingCert(null)} className="text-secondary hover:text-on-surface cursor-pointer">
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
-              <form onSubmit={saveCert} className="space-y-6">
-                <Input
-                  label="Certificate Name"
-                  required
-                  value={editingCert.title || ""}
-                  onChange={(e) => setEditingCert({ ...editingCert, title: e.target.value })}
-                  placeholder="The Complete JavaScript Course"
-                />
-                <Input
-                  label="Subtitle/Issuer"
-                  required
-                  value={editingCert.subtitle || ""}
-                  onChange={(e) => setEditingCert({ ...editingCert, subtitle: e.target.value })}
-                  placeholder="Advanced Logic & Patterns"
-                />
-                <div className="flex gap-4 pt-4 border-t border-outline-variant/20">
-                  <Button type="button" variant="secondary" onClick={() => setEditingCert(null)} className="w-1/2">
-                    Cancel
-                  </Button>
-                  <Button type="submit" variant="primary" className="w-1/2 border-none">
-                    Save Changes
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          </div>
-        )}
-
-        {/* Testimonial Edit Modal */}
-        {editingTestimonial && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <Card interactive={false} className="w-full max-w-md bg-surface-container-lowest p-8 border border-outline-variant/30 shadow-2xl">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-title-md text-title-md font-bold">
-                  {editingTestimonial.role ? "Edit Testimonial" : "Create New Testimonial"}
-                </h3>
-                <button onClick={() => setEditingTestimonial(null)} className="text-secondary hover:text-on-surface cursor-pointer">
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
-              <form onSubmit={saveTestimonial} className="space-y-6">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2">
-                    <Input
-                      label="Author Role"
-                      required
-                      value={editingTestimonial.role || ""}
-                      onChange={(e) => setEditingTestimonial({ ...editingTestimonial, role: e.target.value })}
-                      placeholder="CTO"
-                    />
-                  </div>
-                  <div>
-                    <Input
-                      label="Avatar Letter"
-                      required
-                      value={editingTestimonial.avatar || ""}
-                      onChange={(e) => setEditingTestimonial({ ...editingTestimonial, avatar: e.target.value.substring(0,1).toUpperCase() })}
-                      placeholder="T"
-                    />
-                  </div>
-                </div>
-                <Input
-                  label="Company Name"
-                  required
-                  value={editingTestimonial.company || ""}
-                  onChange={(e) => setEditingTestimonial({ ...editingTestimonial, company: e.target.value })}
-                  placeholder="Terminal 2"
-                />
-                <TextArea
-                  label="Quote Content"
-                  required
-                  value={editingTestimonial.quote || ""}
-                  onChange={(e) => setEditingTestimonial({ ...editingTestimonial, quote: e.target.value })}
-                  placeholder="Write the review message here..."
-                />
-                <div className="flex gap-4 pt-4 border-t border-outline-variant/20">
-                  <Button type="button" variant="secondary" onClick={() => setEditingTestimonial(null)} className="w-1/2">
-                    Cancel
-                  </Button>
-                  <Button type="submit" variant="primary" className="w-1/2 border-none">
-                    Save Changes
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          </div>
-        )}
+        <AIAssistantTab active={activeTab === "agent"} onMutation={loadData} floating={activeTab !== "agent"} />
       </main>
     </div>
   );

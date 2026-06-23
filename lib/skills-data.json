@@ -1,25 +1,192 @@
 {
   "TECHNICAL_CORE": [
-    { "id": 1, "name": "Python", "subtitle": "Automation & AI" },
-    { "id": 2, "name": "JavaScript", "subtitle": "ES6+ Standard" },
-    { "id": 3, "name": "TypeScript", "subtitle": "Type-safe Architecture" },
-    { "id": 4, "name": "React.js", "subtitle": "Component Design" },
-    { "id": 5, "name": "Next.js", "subtitle": "Fullstack Framework" },
-    { "id": 6, "name": "Node.js", "subtitle": "Runtime Environment" }
+    {
+      "id": 1,
+      "name": "Python",
+      "subtitle": "Automation & AI"
+    },
+    {
+      "id": 2,
+      "name": "JavaScript",
+      "subtitle": "ES6+ Standard"
+    },
+    {
+      "id": 3,
+      "name": "TypeScript",
+      "subtitle": "Type-safe Architecture"
+    },
+    {
+      "id": 4,
+      "name": "React.js",
+      "subtitle": "Component Design"
+    },
+    {
+      "id": 5,
+      "name": "Next.js",
+      "subtitle": "Fullstack Framework"
+    },
+    {
+      "id": 6,
+      "name": "Node.js",
+      "subtitle": "Runtime Environment"
+    },
+    {
+      "id": 7,
+      "name": "React Native",
+      "subtitle": "Mobile & Cross-platform"
+    },
+    {
+      "id": 8,
+      "name": "Expo",
+      "subtitle": "React Native Framework"
+    },
+    {
+      "id": 9,
+      "name": "Tailwind CSS",
+      "subtitle": "Utility-first Styling"
+    },
+    {
+      "id": 10,
+      "name": "Chakra UI",
+      "subtitle": "Component Library"
+    },
+    {
+      "id": 11,
+      "name": "Framer Motion",
+      "subtitle": "Declarative Animations"
+    },
+    {
+      "id": 12,
+      "name": "Express.js",
+      "subtitle": "Node.js Framework"
+    },
+    {
+      "id": 13,
+      "name": "FastAPI",
+      "subtitle": "Python Web Framework"
+    },
+    {
+      "id": 14,
+      "name": "AWS",
+      "subtitle": "Cloud Services"
+    },
+    {
+      "id": 15,
+      "name": "Vercel",
+      "subtitle": "Deployment & Hosting"
+    },
+    {
+      "id": 16,
+      "name": "Git",
+      "subtitle": "Version Control"
+    },
+    {
+      "id": 17,
+      "name": "GitHub",
+      "subtitle": "Repository Hosting"
+    },
+    {
+      "id": 18,
+      "name": "LangChain",
+      "subtitle": "LLM Orchestration"
+    },
+    {
+      "id": 19,
+      "name": "Drizzle ORM",
+      "subtitle": "TypeScript ORM"
+    },
+    {
+      "id": 20,
+      "name": "Clerk",
+      "subtitle": "User Authentication"
+    },
+    {
+      "id": 21,
+      "name": "Zustand",
+      "subtitle": "State Management"
+    },
+    {
+      "id": 22,
+      "name": "Baileys",
+      "subtitle": "WhatsApp API"
+    },
+    {
+      "id": 23,
+      "name": "System Degine",
+      "subtitle": "App Perfomance"
+    }
   ],
   "AI_SPECIALIZATION": [
-    { "id": 1, "name": "Gemini" },
-    { "id": 2, "name": "GPT" },
-    { "id": 3, "name": "Claude" },
-    { "id": 4, "name": "Llama" },
-    { "id": 5, "name": "LangChain" },
-    { "id": 6, "name": "LangGraph" }
+    {
+      "id": 1,
+      "name": "Gemini"
+    },
+    {
+      "id": 2,
+      "name": "GPT"
+    },
+    {
+      "id": 3,
+      "name": "Claude"
+    },
+    {
+      "id": 4,
+      "name": "Llama"
+    },
+    {
+      "id": 5,
+      "name": "LangChain"
+    },
+    {
+      "id": 6,
+      "name": "LangGraph"
+    },
+    {
+      "id": 7,
+      "name": "claude code"
+    },
+    {
+      "id": 8,
+      "name": "AI Agent Workflows"
+    },
+    {
+      "id": 9,
+      "name": "Reinforcement Learning"
+    },
+    {
+      "id": 10,
+      "name": "RAG Development"
+    },
+    {
+      "id": 11,
+      "name": "Claude Code"
+    }
   ],
   "DATABASES": [
-    { "id": 1, "name": "Firebase" },
-    { "id": 2, "name": "Drizzle" },
-    { "id": 3, "name": "PostgreSQL" },
-    { "id": 4, "name": "MongoDB" }
+    {
+      "id": 1,
+      "name": "Firebase"
+    },
+    {
+      "id": 2,
+      "name": "Drizzle"
+    },
+    {
+      "id": 3,
+      "name": "PostgreSQL"
+    },
+    {
+      "id": 4,
+      "name": "MongoDB"
+    },
+    {
+      "id": 5,
+      "name": "SQL"
+    },
+    {
+      "id": 6,
+      "name": "Dynamodb"
+    }
   ],
   "EDUCATION_ITEMS": [
     {
@@ -31,7 +198,15 @@
     }
   ],
   "CERTIFICATIONS": [
-    { "id": 1, "title": "The Complete JavaScript Course", "subtitle": "Advanced Logic & Patterns" },
-    { "id": 2, "title": "Build Responsive Websites", "subtitle": "UX/UI & Layout Strategy" }
+    {
+      "id": 1,
+      "title": "The Complete JavaScript Course",
+      "subtitle": "Advanced Logic & Patterns"
+    },
+    {
+      "id": 2,
+      "title": "Build Responsive Websites",
+      "subtitle": "UX/UI & Layout Strategy"
+    }
   ]
 }

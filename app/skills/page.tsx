@@ -29,8 +29,61 @@ export default function SkillsPage() {
   const [educationList, setEducationList] = React.useState<EducationItem[]>(EDUCATION_ITEMS);
   const [certsList, setCertsList] = React.useState<CertificationItem[]>(CERTIFICATIONS);
 
-  // We fetch directly from the local file data imports instead of dynamic DB calls.
-  // This enables hot-reload updates and database-free operations.
+  const [startIndex, setStartIndex] = React.useState(0);
+
+  useEffect(() => {
+    const loadDbData = async () => {
+      try {
+        const resSkills = await fetch("/api/skills");
+        if (resSkills.ok) {
+          const data = await resSkills.json();
+          if (Array.isArray(data) && data.length > 0) setSkillsList(data);
+        }
+        const resAi = await fetch("/api/ai-specialization");
+        if (resAi.ok) {
+          const data = await resAi.json();
+          if (Array.isArray(data) && data.length > 0) setAiSpecsList(data.map((item: any) => item.name));
+        }
+        const resDbs = await fetch("/api/databases");
+        if (resDbs.ok) {
+          const data = await resDbs.json();
+          if (Array.isArray(data) && data.length > 0) setDatabasesList(data.map((item: any) => item.name));
+        }
+        const resEdu = await fetch("/api/education");
+        if (resEdu.ok) {
+          const data = await resEdu.json();
+          if (Array.isArray(data) && data.length > 0) setEducationList(data);
+        }
+        const resCerts = await fetch("/api/certifications");
+        if (resCerts.ok) {
+          const data = await resCerts.json();
+          if (Array.isArray(data) && data.length > 0) setCertsList(data);
+        }
+      } catch (err) {
+        console.error("Failed loading skills page data from database", err);
+      }
+    };
+    loadDbData();
+  }, []);
+
+  useEffect(() => {
+    if (skillsList.length <= 9) return;
+    const interval = setInterval(() => {
+      setStartIndex((prev) => (prev + 1) % skillsList.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [skillsList.length]);
+
+  const visibleSkills = React.useMemo(() => {
+    if (skillsList.length === 0) return [];
+    if (skillsList.length <= 9) return skillsList;
+    const items = [];
+    for (let i = 0; i < 9; i++) {
+      const idx = (startIndex + i) % skillsList.length;
+      items.push(skillsList[idx]);
+    }
+    return items;
+  }, [skillsList, startIndex]);
 
   useEffect(() => {
     // Back to top button scroll handler
@@ -97,18 +150,40 @@ export default function SkillsPage() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-gutter-desktop">
           {/* Technical Core Section (Bento Style) */}
           <Card interactive={false} className="md:col-span-7 bg-surface-container-lowest rounded-2xl p-8 border border-outline-variant/10">
-            <div className="flex items-center gap-3 mb-8">
-              <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
-                terminal
-              </span>
-              <h2 className="font-title-md text-title-md text-on-surface">Technical Core</h2>
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  terminal
+                </span>
+                <h2 className="font-title-md text-title-md text-on-surface">Technical Core</h2>
+              </div>
+              {skillsList.length > 9 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setStartIndex((prev) => (prev - 1 + skillsList.length) % skillsList.length)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center border border-outline-variant/30 text-on-surface-variant hover:bg-primary hover:text-white transition-colors cursor-pointer"
+                    title="Previous skills"
+                  >
+                    <span className="material-symbols-outlined text-sm">chevron_left</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStartIndex((prev) => (prev + 1) % skillsList.length)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center border border-outline-variant/30 text-on-surface-variant hover:bg-primary hover:text-white transition-colors cursor-pointer"
+                    title="Next skills"
+                  >
+                    <span className="material-symbols-outlined text-sm">chevron_right</span>
+                  </button>
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {skillsList.map((skill) => (
+              {visibleSkills.map((skill) => (
                 <Card
                   key={skill.name}
                   interactive={true}
-                  className="skill-chip p-4 bg-surface border border-outline-variant/20 flex flex-col gap-2 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:shadow-primary/5 cursor-default"
+                  className="skill-chip p-4 bg-surface border border-outline-variant/20 flex flex-col gap-2 transition-all duration-500 hover:-translate-y-1 hover:shadow-md hover:shadow-primary/5 cursor-default transform animate-fade-in"
                 >
                   <span className="font-label-md text-label-md font-bold text-on-surface">{skill.name}</span>
                   <span className="text-xs text-on-surface-variant">{skill.subtitle}</span>

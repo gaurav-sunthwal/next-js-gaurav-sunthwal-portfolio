@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { experiences } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 
 export async function GET() {
   try {
-    const list = await db.select().from(experiences);
+    const list = await db.select().from(experiences).orderBy(asc(experiences.position));
     return NextResponse.json(list);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

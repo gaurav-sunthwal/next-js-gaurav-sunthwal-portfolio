@@ -30,12 +30,17 @@ export async function POST(request: Request) {
       }
       return NextResponse.json({ error: "AI specialization not found" }, { status: 404 });
     } else {
-      // Insert
-      const maxId = data.AI_SPECIALIZATION.reduce((max: number, a: any) => (a.id > max ? a.id : max), 0);
-      const newId = maxId + 1;
-      data.AI_SPECIALIZATION.push({ id: newId, name });
+      // Insert (supports comma-separated names)
+      const names = name.split(",").map((n: string) => n.trim()).filter(Boolean);
+      const insertedIds = [];
+      for (const singleName of names) {
+        const maxId = data.AI_SPECIALIZATION.reduce((max: number, a: any) => (a.id > max ? a.id : max), 0);
+        const newId = maxId + 1;
+        data.AI_SPECIALIZATION.push({ id: newId, name: singleName });
+        insertedIds.push(newId);
+      }
       saveSkillsData(data);
-      return NextResponse.json({ success: true, inserted: newId });
+      return NextResponse.json({ success: true, inserted: insertedIds });
     }
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

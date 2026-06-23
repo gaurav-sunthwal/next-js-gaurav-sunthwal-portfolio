@@ -22,6 +22,7 @@ export const experiences = pgTable("experiences", {
   badgeType: text("badge_type").$type<"primary" | "secondary" | string>().notNull(),
   bullets: jsonb("bullets").$type<string[]>().notNull(),
   tech: jsonb("tech").$type<string[]>().notNull(),
+  position: integer("position").default(0).notNull(),
 });
 
 export const skills = pgTable("skills", {

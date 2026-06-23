@@ -30,12 +30,17 @@ export async function POST(request: Request) {
       }
       return NextResponse.json({ error: "Database not found" }, { status: 404 });
     } else {
-      // Insert
-      const maxId = data.DATABASES.reduce((max: number, d: any) => (d.id > max ? d.id : max), 0);
-      const newId = maxId + 1;
-      data.DATABASES.push({ id: newId, name });
+      // Insert (supports comma-separated names)
+      const names = name.split(",").map((n: string) => n.trim()).filter(Boolean);
+      const insertedIds = [];
+      for (const singleName of names) {
+        const maxId = data.DATABASES.reduce((max: number, d: any) => (d.id > max ? d.id : max), 0);
+        const newId = maxId + 1;
+        data.DATABASES.push({ id: newId, name: singleName });
+        insertedIds.push(newId);
+      }
       saveSkillsData(data);
-      return NextResponse.json({ success: true, inserted: newId });
+      return NextResponse.json({ success: true, inserted: insertedIds });
     }
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
