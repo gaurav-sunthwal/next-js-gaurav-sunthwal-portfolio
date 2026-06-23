@@ -278,6 +278,37 @@ export async function POST(request: Request) {
               required: ["id"],
             },
           },
+          // Testimonials
+          {
+            name: "list_testimonials",
+            description: "List all professional testimonials / reviews.",
+          },
+          {
+            name: "create_or_update_testimonial",
+            description: "Add or update a testimonial entry.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                id: { type: "INTEGER", description: "Optional numeric ID. If specified, updates the testimonial; otherwise inserts a new one." },
+                role: { type: "STRING", description: "Role / job title of the reviewer. Required." },
+                company: { type: "STRING", description: "Company of the reviewer. Required." },
+                avatar: { type: "STRING", description: "Avatar character/initial or image URL. Required." },
+                quote: { type: "STRING", description: "Review / testimonial text quote. Required." },
+              },
+              required: ["role", "company", "avatar", "quote"],
+            },
+          },
+          {
+            name: "delete_testimonial",
+            description: "Delete a testimonial entry by ID.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                id: { type: "INTEGER", description: "Numeric ID of the testimonial to delete." },
+              },
+              required: ["id"],
+            },
+          },
           // Resume URL / Settings
           {
             name: "get_resume_url",
@@ -612,6 +643,31 @@ Keep your text answers short and focused. Always answer professionally.`,
               const data = getSkillsData();
               data.DATABASES = data.DATABASES.filter((d: any) => d.id !== Number(id));
               saveSkillsData(data);
+              result = { success: true, deleted: id };
+              break;
+            }
+
+            // Testimonials
+            case "list_testimonials": {
+              result = await db.select().from(testimonials);
+              break;
+            }
+
+            case "create_or_update_testimonial": {
+              const { id, role, company, avatar, quote } = args as any;
+              if (id) {
+                await db.update(testimonials).set({ role, company, avatar, quote }).where(eq(testimonials.id, Number(id)));
+                result = { success: true, updated: id };
+              } else {
+                const inserted = await db.insert(testimonials).values({ role, company, avatar, quote }).returning({ id: testimonials.id });
+                result = { success: true, inserted: inserted[0]?.id };
+              }
+              break;
+            }
+
+            case "delete_testimonial": {
+              const { id } = args as any;
+              await db.delete(testimonials).where(eq(testimonials.id, Number(id)));
               result = { success: true, deleted: id };
               break;
             }
