@@ -85,3 +85,13 @@ export const settings = pgTable("settings", {
   value: text("value").notNull(),
 });
 
+export const uploadedFiles = pgTable("uploaded_files", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  type: text("type").notNull(),
+  size: integer("size").default(0).notNull(),
+  category: text("category").$type<"website" | "chat" | string>().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+

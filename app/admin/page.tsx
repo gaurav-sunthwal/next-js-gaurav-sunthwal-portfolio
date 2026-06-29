@@ -31,8 +31,9 @@ import { SkillsTab } from "@/app/admin/components/SkillsTab";
 import { ReviewsTab } from "@/app/admin/components/ReviewsTab";
 import { UsersTab } from "@/app/admin/components/UsersTab";
 import { AIAssistantTab } from "@/app/admin/components/AIAssistantTab";
+import { FilesTab } from "@/app/admin/components/FilesTab";
 
-type TabType = "overview" | "projects" | "experience" | "skills" | "reviews" | "users" | "agent";
+type TabType = "overview" | "projects" | "experience" | "skills" | "reviews" | "users" | "agent" | "files";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
@@ -487,7 +488,7 @@ export default function AdminPage() {
 
         {/* Sidebar Tabs */}
         <nav className="flex flex-col gap-1.5 flex-grow">
-          {(["overview", "projects", "experience", "skills", "reviews", "users", "agent"] as TabType[]).map((tab) => {
+          {(["overview", "projects", "experience", "skills", "reviews", "users", "agent", "files"] as TabType[]).map((tab) => {
             let icon = "dashboard";
             if (tab === "projects") icon = "grid_view";
             if (tab === "experience") icon = "work";
@@ -495,6 +496,7 @@ export default function AdminPage() {
             if (tab === "reviews") icon = "forum";
             if (tab === "users") icon = "group";
             if (tab === "agent") icon = "smart_toy";
+            if (tab === "files") icon = "folder";
 
             const label =
               tab === "skills"
@@ -503,6 +505,8 @@ export default function AdminPage() {
                 ? "User Management"
                 : tab === "agent"
                 ? "AI Assistant"
+                : tab === "files"
+                ? "Files Manager"
                 : tab;
 
             return (
@@ -617,6 +621,8 @@ export default function AdminPage() {
             {activeTab === "reviews" && <ReviewsTab testimonials={testimonials} loadData={loadData} />}
 
             {activeTab === "users" && <UsersTab usersList={usersList} fetchUsers={fetchUsers} />}
+
+            {activeTab === "files" && <FilesTab />}
           </>
         )}
 

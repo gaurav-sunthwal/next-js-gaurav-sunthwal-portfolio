@@ -97,6 +97,7 @@ export function AIAssistantTab({ active, onMutation, floating }: AIAssistantTabP
     setIsUploadingFile(true);
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("category", "chat");
 
     try {
       const res = await fetch("/api/upload", {
@@ -138,6 +139,7 @@ export function AIAssistantTab({ active, onMutation, floating }: AIAssistantTabP
         setIsUploadingFile(true);
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("category", "chat");
 
         try {
           const res = await fetch("/api/upload", {
