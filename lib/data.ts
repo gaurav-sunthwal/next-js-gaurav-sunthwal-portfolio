@@ -177,9 +177,9 @@ export const TESTIMONIALS: TestimonialItem[] = [
 ];
 
 export const DEFAULT_HOMEPAGE_TEXTS = {
-  hero_title: 'Full Stack Developer specializing in Generative AI & RAG Systems.',
-  hero_title_highlight : '<span class="text-primary">Generative AI</span>',
-  hero_description: 'Building production-ready AI products with Next.js and React Native. Focused on bridging LLM capabilities with high-performance user experiences.',
+  hero_title: 'Full Stack Developer specializing in Generative AI & Scalable Systems.',
+  hero_title_highlight : '<span class="text-primary">Generative AI & Scalable Systems</span>',
+  hero_description: 'I build high-performance web and mobile applications using Next.js and React Native, focusing on bridging LLM capabilities with robust backend systems and exceptional user experiences. Expertise in FastAPI, PostgreSQL, and AI integration.',
 };
 
 

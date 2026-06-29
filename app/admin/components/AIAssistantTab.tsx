@@ -2,6 +2,17 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Input } from "@/components/Input";
+import ReactMarkdown from "react-markdown";
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  attachment?: {
+    url: string;
+    name: string;
+    type: string;
+  };
+}
 
 interface AIAssistantTabProps {
   active: boolean;
@@ -10,7 +21,7 @@ interface AIAssistantTabProps {
 }
 
 export function AIAssistantTab({ active, onMutation, floating }: AIAssistantTabProps) {
-  const [chatMessages, setChatMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
       content:
@@ -23,6 +34,9 @@ export function AIAssistantTab({ active, onMutation, floating }: AIAssistantTabP
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [isSavingApiKey, setIsSavingApiKey] = useState(false);
   const [isFloatingOpen, setIsFloatingOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<{ url: string; name: string; type: string } | null>(null);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Check if API Key is available on agent tab activation
@@ -76,13 +90,98 @@ export function AIAssistantTab({ active, onMutation, floating }: AIAssistantTabP
     }
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingFile(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedFile({
+          url: data.url,
+          name: file.name,
+          type: file.type,
+        });
+      } else {
+        alert("Failed to upload file");
+      }
+    } catch (err) {
+      alert("Error uploading file");
+    } finally {
+      setIsUploadingFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.kind === "file") {
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
+          continue;
+        }
+
+        setIsUploadingFile(true);
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+          const res = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setSelectedFile({
+              url: data.url,
+              name: file.name || "pasted-image.png",
+              type: file.type,
+            });
+          } else {
+            alert("Failed to upload pasted file");
+          }
+        } catch (err) {
+          alert("Error uploading pasted file");
+        } finally {
+          setIsUploadingFile(false);
+        }
+
+        e.preventDefault();
+        break;
+      }
+    }
+  };
+
   const handleSendPrompt = async (e?: React.FormEvent, customPrompt?: string) => {
     if (e) e.preventDefault();
     const prompt = customPrompt || promptInput;
     if (!prompt.trim() || isSendingPrompt) return;
 
-    const newMessages = [...chatMessages, { role: "user" as const, content: prompt }];
+    const userMessage: ChatMessage = {
+      role: "user" as const,
+      content: prompt,
+    };
+    if (selectedFile) {
+      userMessage.attachment = selectedFile;
+    }
+
+    const newMessages = [...chatMessages, userMessage];
     setChatMessages(newMessages);
+    setSelectedFile(null);
     if (!customPrompt) setPromptInput("");
     setIsSendingPrompt(true);
 
@@ -189,7 +288,39 @@ export function AIAssistantTab({ active, onMutation, floating }: AIAssistantTabP
                           : "bg-surface-container text-on-surface border border-outline-variant/20 rounded-tl-none"
                       }`}
                     >
-                      <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>
+                      <div
+                        className={`prose text-sm break-words whitespace-pre-wrap leading-relaxed
+                          ${msg.role === "user" ? "text-white [&_strong]:text-white [&_code]:bg-white/20 [&_code]:text-white" : "text-on-surface [&_code]:bg-black/10"}
+                          [&_p]:mb-2 [&_p:last-child]:mb-0
+                          [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2
+                          [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2
+                          [&_li]:mb-1
+                          [&_h1]:text-lg [&_h1]:font-bold [&_h1]:mb-2
+                          [&_h2]:text-base [&_h2]:font-bold [&_h2]:mb-2
+                          [&_h3]:text-sm [&_h3]:font-bold [&_h3]:mb-1
+                          [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_code]:text-xs
+                          [&_pre]:bg-zinc-900 [&_pre]:text-zinc-100 [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_pre]:mb-2
+                          [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-zinc-100
+                          [&_strong]:font-bold
+                          [&_table]:border-collapse [&_table]:w-full [&_table]:mb-2
+                          [&_th]:border [&_th]:border-outline-variant/30 [&_th]:p-2 [&_th]:bg-surface-container-high [&_th]:font-bold [&_th]:text-left
+                          [&_td]:border [&_td]:border-outline-variant/30 [&_td]:p-2 [&_td]:text-left`}
+                      >
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      </div>
+                      {msg.attachment && (
+                        <a
+                          href={msg.attachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 mt-2 bg-white/20 hover:bg-white/30 text-[10px] text-white px-2 py-1 rounded-md w-fit font-semibold"
+                        >
+                          <span className="material-symbols-outlined text-xs">
+                            {msg.attachment.type.startsWith("image/") ? "image" : "description"}
+                          </span>
+                          <span className="truncate max-w-[150px]">{msg.attachment.name}</span>
+                        </a>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -205,24 +336,63 @@ export function AIAssistantTab({ active, onMutation, floating }: AIAssistantTabP
               </div>
 
               {/* Input form */}
-              <form onSubmit={handleSendPrompt} className="flex gap-2 shrink-0 border-t border-divider pt-4">
-                <input
-                  type="text"
-                  value={promptInput}
-                  onChange={(e) => setPromptInput(e.target.value)}
-                  placeholder="Ask me to show, update, delete or add something..."
-                  disabled={isSendingPrompt}
-                  className="flex-grow bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-3 text-sm text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary transition-all font-medium"
-                />
-                <Button
-                  type="submit"
-                  disabled={isSendingPrompt || !promptInput.trim()}
-                  variant="primary"
-                  className="px-5 py-3 h-auto rounded-xl flex items-center justify-center shrink-0 border-none"
-                >
-                  <span className="material-symbols-outlined">send</span>
-                </Button>
-              </form>
+              <div className="border-t border-divider pt-4 shrink-0 flex flex-col gap-2">
+                {/* File Attachment Preview */}
+                {selectedFile && (
+                  <div className="flex items-center gap-2 bg-surface-container-high px-3 py-1.5 rounded-lg text-xs font-semibold w-fit text-on-surface border border-outline-variant/30">
+                    <span className="material-symbols-outlined text-sm text-primary">
+                      {selectedFile.type.startsWith("image/") ? "image" : "description"}
+                    </span>
+                    <span className="truncate max-w-[200px]">{selectedFile.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFile(null)}
+                      className="text-on-surface-variant hover:text-error transition-all"
+                    >
+                      <span className="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  </div>
+                )}
+
+                <form onSubmit={handleSendPrompt} className="flex gap-2 w-full">
+                  <button
+                    type="button"
+                    disabled={isSendingPrompt || isUploadingFile}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-3 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-primary rounded-xl flex items-center justify-center shrink-0 border border-outline-variant/30 cursor-pointer"
+                  >
+                    {isUploadingFile ? (
+                      <span className="material-symbols-outlined animate-spin text-sm">sync</span>
+                    ) : (
+                      <span className="material-symbols-outlined">attach_file</span>
+                    )}
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                  />
+                  <input
+                    type="text"
+                    value={promptInput}
+                    onChange={(e) => setPromptInput(e.target.value)}
+                    onPaste={handlePaste}
+                    placeholder="Ask me to show, update, delete or add something..."
+                    disabled={isSendingPrompt}
+                    className="flex-grow bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-3 text-sm text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary transition-all font-medium"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={isSendingPrompt || !promptInput.trim()}
+                    variant="primary"
+                    className="px-5 py-3 h-auto rounded-xl flex items-center justify-center shrink-0 border-none"
+                  >
+                    <span className="material-symbols-outlined">send</span>
+                  </Button>
+                </form>
+              </div>
             </Card>
 
             {/* Right Side: Suggestions & Quick actions */}
@@ -380,7 +550,39 @@ export function AIAssistantTab({ active, onMutation, floating }: AIAssistantTabP
                           : "bg-surface-container text-on-surface border border-outline-variant/20 rounded-tl-none"
                       }`}
                     >
-                      <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>
+                      <div
+                        className={`prose text-xs break-words whitespace-pre-wrap leading-relaxed
+                          ${msg.role === "user" ? "text-white [&_strong]:text-white [&_code]:bg-white/20 [&_code]:text-white" : "text-on-surface [&_code]:bg-black/10"}
+                          [&_p]:mb-2 [&_p:last-child]:mb-0
+                          [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2
+                          [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2
+                          [&_li]:mb-1
+                          [&_h1]:text-base [&_h1]:font-bold [&_h1]:mb-1.5
+                          [&_h2]:text-sm [&_h2]:font-bold [&_h2]:mb-1.5
+                          [&_h3]:text-xs [&_h3]:font-bold [&_h3]:mb-1
+                          [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_code]:text-[10px]
+                          [&_pre]:bg-zinc-900 [&_pre]:text-zinc-100 [&_pre]:p-2 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_pre]:mb-2
+                          [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-zinc-100
+                          [&_strong]:font-bold
+                          [&_table]:border-collapse [&_table]:w-full [&_table]:mb-2
+                          [&_th]:border [&_th]:border-outline-variant/30 [&_th]:p-1.5 [&_th]:bg-surface-container-high [&_th]:font-bold [&_th]:text-left
+                          [&_td]:border [&_td]:border-outline-variant/30 [&_td]:p-1.5 [&_td]:text-left`}
+                      >
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      </div>
+                      {msg.attachment && (
+                        <a
+                          href={msg.attachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 mt-1.5 bg-white/20 hover:bg-white/30 text-[9px] text-white px-2 py-0.5 rounded-md w-fit font-semibold"
+                        >
+                          <span className="material-symbols-outlined text-[10px]">
+                            {msg.attachment.type.startsWith("image/") ? "image" : "description"}
+                          </span>
+                          <span className="truncate max-w-[130px]">{msg.attachment.name}</span>
+                        </a>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -415,24 +617,63 @@ export function AIAssistantTab({ active, onMutation, floating }: AIAssistantTabP
               </div>
 
               {/* Chat Input */}
-              <form onSubmit={handleSendPrompt} className="p-3 border-t border-divider flex gap-1.5 shrink-0 bg-surface-container-lowest">
-                <input
-                  type="text"
-                  value={promptInput}
-                  onChange={(e) => setPromptInput(e.target.value)}
-                  placeholder="Ask me to do something..."
-                  disabled={isSendingPrompt}
-                  className="flex-grow bg-surface-container border border-outline-variant/30 rounded-lg px-3 py-2 text-xs text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary transition-all font-medium"
-                />
-                <Button
-                  type="submit"
-                  disabled={isSendingPrompt || !promptInput.trim()}
-                  variant="primary"
-                  className="p-2 h-auto rounded-lg flex items-center justify-center shrink-0 border-none aspect-square"
-                >
-                  <span className="material-symbols-outlined text-sm">send</span>
-                </Button>
-              </form>
+              <div className="border-t border-divider bg-surface-container-lowest p-3 shrink-0 flex flex-col gap-2">
+                {/* File Attachment Preview */}
+                {selectedFile && (
+                  <div className="flex items-center gap-1.5 bg-surface-container-high px-2 py-1 rounded-md text-[10px] font-semibold w-fit text-on-surface border border-outline-variant/30">
+                    <span className="material-symbols-outlined text-xs text-primary">
+                      {selectedFile.type.startsWith("image/") ? "image" : "description"}
+                    </span>
+                    <span className="truncate max-w-[150px]">{selectedFile.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFile(null)}
+                      className="text-on-surface-variant hover:text-error transition-all"
+                    >
+                      <span className="material-symbols-outlined text-xs">close</span>
+                    </button>
+                  </div>
+                )}
+
+                <form onSubmit={handleSendPrompt} className="flex gap-1.5 w-full">
+                  <button
+                    type="button"
+                    disabled={isSendingPrompt || isUploadingFile}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-2 bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-primary rounded-lg flex items-center justify-center shrink-0 border border-outline-variant/30 cursor-pointer"
+                  >
+                    {isUploadingFile ? (
+                      <span className="material-symbols-outlined animate-spin text-xs">sync</span>
+                    ) : (
+                      <span className="material-symbols-outlined text-sm">attach_file</span>
+                    )}
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                  />
+                  <input
+                    type="text"
+                    value={promptInput}
+                    onChange={(e) => setPromptInput(e.target.value)}
+                    onPaste={handlePaste}
+                    placeholder="Ask me to do something..."
+                    disabled={isSendingPrompt}
+                    className="flex-grow bg-surface-container border border-outline-variant/30 rounded-lg px-3 py-2 text-xs text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary transition-all font-medium"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={isSendingPrompt || !promptInput.trim()}
+                    variant="primary"
+                    className="p-2 h-auto rounded-lg flex items-center justify-center shrink-0 border-none aspect-square"
+                  >
+                    <span className="material-symbols-outlined text-sm">send</span>
+                  </Button>
+                </form>
+              </div>
             </div>
           )}
         </div>
