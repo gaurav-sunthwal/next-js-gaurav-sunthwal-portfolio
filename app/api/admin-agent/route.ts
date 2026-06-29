@@ -95,6 +95,8 @@ When updating a project, note that 'links' is a structured array, but we have he
 IMPORTANT TOOL CALLING RULE:
 If you need to perform multiple database operations (e.g. adding multiple skills, database technologies, certifications, or experiences), you MUST generate all the required tool calls concurrently (in parallel) in a single turn/response. Do NOT call tools one-by-one in sequence across multiple turns. The system will execute all generated tool calls at the same time in parallel.
 
+After calling the database tools and receiving their execution confirmation, you MUST provide a friendly final text message summarizing what changes have been made (do not return an empty text response).
+
 Keep your text answers short and focused. Always answer professionally.`
     );
 
@@ -200,6 +202,12 @@ Keep your text answers short and focused. Always answer professionally.`
           textContent = aiMessage.content
             .map((part) => (typeof part === "string" ? part : part.type === "text" ? (part as any).text : ""))
             .join("");
+        }
+
+        textContent = textContent.trim();
+        // Fallback in case the model returns an empty text response after executing tools
+        if (!textContent && attempts > 1) {
+          textContent = "I have successfully processed your request and updated your portfolio database details.";
         }
 
         console.log(`[Admin Agent] Model finalized text response (length: ${textContent.length}):`, textContent);
