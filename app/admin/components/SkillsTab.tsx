@@ -3,6 +3,7 @@ import { SkillItem, EducationItem, CertificationItem } from "@/lib/data";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Input } from "@/components/Input";
+import { TechIcon } from "@/components/site/ui";
 
 interface SkillsTabProps {
   skills: SkillItem[];
@@ -50,6 +51,16 @@ export function SkillsTab({
       setIsSaving(false);
       setEditingSkill(null);
     }
+  };
+
+  // Several skills were saved more than once; this keeps the first of each name.
+  const duplicateSkills = skills.filter(
+    (s, i) => skills.findIndex((x) => x.name.trim().toLowerCase() === s.name.trim().toLowerCase()) !== i
+  );
+  const removeDuplicates = async () => {
+    if (!confirm(`Remove ${duplicateSkills.length} duplicate skill(s)?`)) return;
+    await Promise.all(duplicateSkills.map((s) => fetch(`/api/skills/${s.id}`, { method: "DELETE" })));
+    await loadData();
   };
 
   const deleteSkill = async (id: number) => {
@@ -176,15 +187,28 @@ export function SkillsTab({
       {/* Technical Core Section */}
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold">Technical Core Languages/Frameworks</h2>
-          <Button variant="primary" onClick={() => setEditingSkill({})} className="flex items-center gap-2 border-none">
-            <span className="material-symbols-outlined text-sm">add</span> Add Skill
-          </Button>
+          <div>
+            <h2 className="text-xl font-bold">Stack (Skills)</h2>
+            <p className="text-xs text-on-surface-variant mt-1">
+              Shown in the &ldquo;Stack&rdquo; section together with AI topics and databases below. Logos are picked automatically from the name.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {duplicateSkills.length > 0 && (
+              <Button variant="outline" onClick={removeDuplicates} className="text-xs">
+                Remove {duplicateSkills.length} duplicates
+              </Button>
+            )}
+            <Button variant="primary" onClick={() => setEditingSkill({})} className="flex items-center gap-2 border-none">
+              <span className="material-symbols-outlined text-sm">add</span> Add Skill
+            </Button>
+          </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {skills.map((skill) => (
-            <Card key={skill.name} interactive={false} className="p-4 border border-outline-variant/20 bg-surface-container-lowest flex items-center justify-between gap-3">
-              <div className="flex flex-col">
+            <Card key={skill.id ?? skill.name} interactive={false} className="p-4 border border-outline-variant/20 bg-surface-container-lowest flex items-center justify-between gap-3">
+              <TechIcon name={skill.name} icon={skill.icon} className="size-5" />
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="font-bold text-sm">{skill.name}</span>
                 <span className="text-[10px] text-on-surface-variant">{skill.subtitle}</span>
               </div>
@@ -211,14 +235,14 @@ export function SkillsTab({
         </div>
         <div className="space-y-4">
           {education.map((edu) => (
-            <Card key={edu.degree} interactive={false} className="p-6 border border-outline-variant/20 bg-surface-container-lowest flex flex-col sm:flex-row items-center justify-between gap-6">
+            <Card key={edu.id ?? edu.degree} interactive={false} className="p-6 border border-outline-variant/20 bg-surface-container-lowest flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-surface-dim rounded-lg overflow-hidden shrink-0">
+                <div className="w-16 h-16 bg-muted rounded-lg overflow-hidden shrink-0">
                   <img src={edu.image} alt={edu.school} className="w-full h-full object-cover" />
                 </div>
                 <div>
                   <h4 className="font-bold text-sm">{edu.degree}</h4>
-                  <p className="text-xs text-secondary">{edu.school} — {edu.location}</p>
+                  <p className="text-xs text-secondary">{edu.school} — {[edu.period, edu.location].filter(Boolean).join(" · ")}</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -358,12 +382,23 @@ export function SkillsTab({
                 placeholder="Next.js"
               />
               <Input
-                label="Subtitle Description"
-                required
+                label="Subtitle Description (optional)"
                 value={editingSkill.subtitle || ""}
                 onChange={(e) => setEditingSkill({ ...editingSkill, subtitle: e.target.value })}
                 placeholder="Fullstack Framework"
               />
+              <Input
+                label="Logo override (optional)"
+                value={editingSkill.icon || ""}
+                onChange={(e) => setEditingSkill({ ...editingSkill, icon: e.target.value })}
+                placeholder="simpleicons slug like 'nextdotjs', or an image URL"
+              />
+              {editingSkill.name && (
+                <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                  Preview: <TechIcon name={editingSkill.name} icon={editingSkill.icon} className="size-5" />
+                  <span>(no logo shown = none found; add an override above)</span>
+                </div>
+              )}
               <div className="flex gap-4 pt-4 border-t border-outline-variant/20">
                 <Button type="button" variant="secondary" onClick={() => setEditingSkill(null)} className="w-1/2">
                   Cancel
@@ -406,20 +441,30 @@ export function SkillsTab({
               />
               <div className="grid grid-cols-2 gap-4">
                 <Input
+                  label="Period"
+                  value={editingEdu.period || ""}
+                  onChange={(e) => setEditingEdu({ ...editingEdu, period: e.target.value })}
+                  placeholder="2022 – 2026"
+                />
+                <Input
                   label="Location"
-                  required
                   value={editingEdu.location || ""}
                   onChange={(e) => setEditingEdu({ ...editingEdu, location: e.target.value })}
                   placeholder="Pune, India"
                 />
-                <Input
-                  label="Image URL"
-                  required
-                  value={editingEdu.image || ""}
-                  onChange={(e) => setEditingEdu({ ...editingEdu, image: e.target.value })}
-                  placeholder="https://..."
-                />
               </div>
+              <Input
+                label="Logo / Image URL"
+                value={editingEdu.image || ""}
+                onChange={(e) => setEditingEdu({ ...editingEdu, image: e.target.value })}
+                placeholder="https://..."
+              />
+              <Input
+                label="School Website"
+                value={editingEdu.url || ""}
+                onChange={(e) => setEditingEdu({ ...editingEdu, url: e.target.value })}
+                placeholder="https://mitwpu.edu.in"
+              />
               <div className="flex gap-4 pt-4 border-t border-outline-variant/20">
                 <Button type="button" variant="secondary" onClick={() => setEditingEdu(null)} className="w-1/2">
                   Cancel

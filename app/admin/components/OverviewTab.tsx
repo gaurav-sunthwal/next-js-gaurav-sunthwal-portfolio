@@ -1,7 +1,7 @@
 import React from "react";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
-import { Input, TextArea } from "@/components/Input";
+import { Input } from "@/components/Input";
 
 interface OverviewTabProps {
   projectsCount: number;
@@ -13,14 +13,6 @@ interface OverviewTabProps {
   resumeUploadProgress: number;
   handleResumeUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   setActiveTab: (tab: any) => void;
-  heroTitle: string;
-  setHeroTitle: (val: string) => void;
-  heroTitleHighlight: string;
-  setHeroTitleHighlight: (val: string) => void;
-  heroDescription: string;
-  setHeroDescription: (val: string) => void;
-  isSavingTexts: boolean;
-  handleSaveTexts: (title: string, highlight: string, description: string) => void;
   geminiApiKey: string;
   setGeminiApiKey: (val: string) => void;
 }
@@ -35,14 +27,6 @@ export function OverviewTab({
   resumeUploadProgress,
   handleResumeUpload,
   setActiveTab,
-  heroTitle,
-  setHeroTitle,
-  heroTitleHighlight,
-  setHeroTitleHighlight,
-  heroDescription,
-  setHeroDescription,
-  isSavingTexts,
-  handleSaveTexts,
   geminiApiKey,
   setGeminiApiKey,
 }: OverviewTabProps) {
@@ -92,17 +76,21 @@ export function OverviewTab({
         <Card interactive={false} className="p-6 bg-surface-container-lowest border border-outline-variant/10 flex flex-col gap-2">
           <span className="material-symbols-outlined text-primary text-3xl">forum</span>
           <span className="text-3xl font-extrabold">{reviewsCount}</span>
-          <span className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Partner Reviews</span>
+          <span className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Testimonials</span>
         </Card>
       </div>
 
       <Card interactive={false} className="p-8 border border-outline-variant/20 bg-surface-container-low flex flex-col gap-4">
         <h3 className="font-title-md text-title-md font-bold">Welcome to your Portfolio Studio</h3>
         <p className="text-on-surface-variant text-sm max-w-2xl leading-relaxed">
-          This administration interface operates in local preview mode. Any modifications made here will affect the state of the screens in your active session. Once you are satisfied with the updates, the data configurations can be permanently exported.
+          Everything you change here is saved to the database and appears on the live site straight away. Start with
+          Profile &amp; Text to edit your name, bio, photos and links.
         </p>
-        <div className="flex gap-4 mt-2">
-          <Button variant="primary" onClick={() => setActiveTab("projects")} className="border-none">
+        <div className="flex flex-wrap gap-3 mt-2">
+          <Button variant="primary" onClick={() => setActiveTab("profile")} className="border-none">
+            Edit Profile &amp; Text
+          </Button>
+          <Button variant="outline" onClick={() => setActiveTab("projects")}>
             Manage Projects
           </Button>
           <Button variant="outline" onClick={() => setActiveTab("experience")}>
@@ -138,7 +126,7 @@ export function OverviewTab({
               variant="outline"
               type="button"
               onClick={() => setShowKey(!showKey)}
-              className="h-12 px-3 aspect-square flex items-center justify-center"
+              className="h-10 px-3 aspect-square flex items-center justify-center"
               title={showKey ? "Hide Key" : "Show Key"}
             >
               <span className="material-symbols-outlined text-lg">
@@ -149,53 +137,9 @@ export function OverviewTab({
               variant="outline"
               disabled={isSavingKey}
               onClick={handleSaveApiKey}
-              className="h-12"
+              className="h-10"
             >
               {isSavingKey ? "Saving..." : "Save Key"}
-            </Button>
-          </div>
-        </div>
-      </Card>
-
-      {/* Homepage Hero Texts settings */}
-      <Card interactive={false} className="p-8 border border-outline-variant/20 bg-surface-container-lowest flex flex-col gap-6">
-        <div className="flex flex-col gap-1">
-          <h3 className="font-title-md text-title-md font-bold flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">edit_note</span>
-            Homepage Hero Settings
-          </h3>
-          <p className="text-on-surface-variant text-xs">
-            Edit the main title and description displayed in the hero section of the homescreen. You can use HTML tags like <code>&lt;span class="text-primary"&gt;Text&lt;/span&gt;</code> to highlight text in the title.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-4 max-w-xl">
-          <Input
-            label="Hero Title"
-            value={heroTitle}
-            onChange={(e) => setHeroTitle(e.target.value)}
-            placeholder="e.g. Full Stack Developer specializing in Generative AI"
-          />
-          <Input
-            label="Hero Title Highlighted Part"
-            value={heroTitleHighlight}
-            onChange={(e) => setHeroTitleHighlight(e.target.value)}
-            placeholder="e.g. <span class=&quot;text-primary&quot;>Generative AI</span>"
-          />
-          <TextArea
-            label="Hero Description"
-            value={heroDescription}
-            onChange={(e) => setHeroDescription(e.target.value)}
-            placeholder="e.g. Building production-ready AI products..."
-          />
-          <div className="flex justify-end">
-            <Button
-              variant="primary"
-              onClick={() => handleSaveTexts(heroTitle, heroTitleHighlight, heroDescription)}
-              disabled={isSavingTexts}
-              className="border-none"
-            >
-              {isSavingTexts ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </div>
@@ -218,7 +162,7 @@ export function OverviewTab({
             <div className="flex-grow">
               <input
                 type="text"
-                className="w-full px-4 h-12 bg-surface-container-low border border-outline-variant/30 rounded-default font-geist text-sm text-on-surface focus:outline-none focus:border-primary"
+                className="w-full px-4 h-10 bg-surface-container-low border border-outline-variant/30 rounded-default font-geist text-sm text-on-surface focus:outline-none focus:border-primary"
                 value={resumeUrl}
                 readOnly
                 placeholder="No resume uploaded yet"
@@ -228,7 +172,7 @@ export function OverviewTab({
               variant="outline"
               onClick={() => document.getElementById("resume-file-input")?.click()}
               disabled={isResumeUploading}
-              className="h-12"
+              className="h-10"
             >
               {isResumeUploading ? `Uploading... (${resumeUploadProgress}%)` : "Upload PDF"}
             </Button>

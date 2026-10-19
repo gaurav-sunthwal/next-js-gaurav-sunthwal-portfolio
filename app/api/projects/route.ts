@@ -18,6 +18,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { id, title, description, image, tags, type, demoUrl, screenshots, links } = body;
+    const featured = Boolean(body.featured);
+    const content = typeof body.content === "string" && body.content.trim() ? body.content : null;
+    const youtubeUrl = typeof body.youtubeUrl === "string" && body.youtubeUrl.trim() ? body.youtubeUrl.trim() : null;
 
     if (!id || !title || !description || !image) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -30,7 +33,7 @@ export async function POST(request: Request) {
       // Update
       await db
         .update(projects)
-        .set({ title, description, image, tags, type, demoUrl, screenshots, links })
+        .set({ title, description, image, tags, type, demoUrl, screenshots, links, featured, content, youtubeUrl })
         .where(eq(projects.id, id));
       return NextResponse.json({ success: true, updated: id });
     } else {
@@ -45,6 +48,9 @@ export async function POST(request: Request) {
         demoUrl: demoUrl || "",
         screenshots: screenshots || [],
         links: links || [],
+        featured,
+        content,
+        youtubeUrl,
       });
       return NextResponse.json({ success: true, inserted: id });
     }

@@ -116,7 +116,7 @@ export function UsersTab({ usersList, fetchUsers }: UsersTabProps) {
         {/* Left Column: Users List */}
         <div className="space-y-4">
           <h3 className="text-lg font-bold text-on-surface">Registered Users</h3>
-          <div className="bg-white border border-outline-variant/30 rounded-2xl divide-y divide-outline-variant/20 overflow-hidden shadow-sm">
+          <div className="bg-background border border-outline-variant/30 rounded-2xl divide-y divide-outline-variant/20 overflow-hidden shadow-sm">
             {usersList.map((usr) => (
               <div key={usr.id} className="p-4 flex items-center justify-between hover:bg-surface-container-lowest transition-colors">
                 <div className="flex items-center gap-3">

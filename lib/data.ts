@@ -12,6 +12,9 @@ export interface ProjectItem {
     href: string;
     icon: string;
   }[];
+  featured?: boolean;
+  content?: string | null;
+  youtubeUrl?: string | null;
 }
 
 export interface ExperienceItem {
@@ -23,6 +26,8 @@ export interface ExperienceItem {
   badgeType: "primary" | "secondary";
   bullets: string[];
   tech: string[];
+  logo?: string | null;
+  url?: string | null;
 }
 
 export const PROJECT_ITEMS: ProjectItem[] = [
@@ -114,15 +119,17 @@ export interface SkillItem {
   id?: number;
   name: string;
   subtitle: string;
+  icon?: string | null;
 }
 
 export interface EducationItem {
   id?: number;
   degree: string;
   school: string;
-  period?: string;
+  period?: string | null;
   location: string;
   image: string;
+  url?: string | null;
 }
 
 export interface CertificationItem {

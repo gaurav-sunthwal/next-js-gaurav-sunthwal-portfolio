@@ -8,12 +8,12 @@ export const Input: React.FC<InputProps> = ({ label, className = "", ...props })
   return (
     <div className="flex flex-col gap-2 w-full">
       {label && (
-        <label className="font-geist text-xs font-semibold uppercase tracking-wider text-[#717171]">
+        <label className="font-mono text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
           {label}
         </label>
       )}
       <input
-        className={`w-full px-4 h-12 bg-[#F7F7F7] border-2 border-transparent rounded-default font-geist text-sm text-[#222222] placeholder:text-[#717171]/60 focus:outline-none focus:border-primary transition-all duration-200 ${className}`}
+        className={`w-full px-3 h-10 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-brand/60 focus:ring-2 focus:ring-brand/20 transition-colors disabled:opacity-60 ${className}`}
         {...props}
       />
     </div>
@@ -28,12 +28,12 @@ export const TextArea: React.FC<TextAreaProps> = ({ label, className = "", ...pr
   return (
     <div className="flex flex-col gap-2 w-full">
       {label && (
-        <label className="font-geist text-xs font-semibold uppercase tracking-wider text-[#717171]">
+        <label className="font-mono text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
           {label}
         </label>
       )}
       <textarea
-        className={`w-full p-4 min-h-[120px] bg-[#F7F7F7] border-2 border-transparent rounded-default font-geist text-sm text-[#222222] placeholder:text-[#717171]/60 focus:outline-none focus:border-primary transition-all duration-200 resize-y ${className}`}
+        className={`w-full p-3 min-h-[120px] bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-brand/60 focus:ring-2 focus:ring-brand/20 transition-colors resize-y ${className}`}
         {...props}
       />
     </div>

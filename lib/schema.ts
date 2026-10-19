@@ -1,4 +1,4 @@
-import { pgTable, text, serial, jsonb, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, jsonb, timestamp, integer, boolean } from "drizzle-orm/pg-core";
 
 export const projects = pgTable("projects", {
   id: text("id").primaryKey(),
@@ -10,6 +10,9 @@ export const projects = pgTable("projects", {
   demoUrl: text("demo_url"),
   screenshots: jsonb("screenshots").$type<string[]>(),
   links: jsonb("links").$type<{ label: string; href: string; icon: string }[]>().notNull(),
+  featured: boolean("featured").default(false).notNull(),
+  content: text("content"),
+  youtubeUrl: text("youtube_url"),
   position: integer("position").default(0).notNull(),
 });
 
@@ -22,6 +25,8 @@ export const experiences = pgTable("experiences", {
   badgeType: text("badge_type").$type<"primary" | "secondary" | string>().notNull(),
   bullets: jsonb("bullets").$type<string[]>().notNull(),
   tech: jsonb("tech").$type<string[]>().notNull(),
+  logo: text("logo"),
+  url: text("url"),
   position: integer("position").default(0).notNull(),
 });
 
@@ -29,6 +34,7 @@ export const skills = pgTable("skills", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   subtitle: text("subtitle").notNull(),
+  icon: text("icon"),
 });
 
 export const education = pgTable("education", {
@@ -37,6 +43,8 @@ export const education = pgTable("education", {
   school: text("school").notNull(),
   location: text("location").notNull(),
   image: text("image").notNull(),
+  period: text("period"),
+  url: text("url"),
 });
 
 export const certifications = pgTable("certifications", {
@@ -83,6 +91,24 @@ export const messages = pgTable("messages", {
 export const settings = pgTable("settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
+});
+
+// Photos for the Pinterest-style /memories page.
+export const memories = pgTable("memories", {
+  id: serial("id").primaryKey(),
+  url: text("url").notNull(),
+  caption: text("caption").default("").notNull(),
+  takenOn: text("taken_on").default("").notNull(), // free text, e.g. "Dec 2025" or "Manali"
+  width: integer("width").default(0).notNull(),
+  height: integer("height").default(0).notNull(),
+  position: integer("position").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at"), // set = in "Recently deleted"
+  source: text("source").default("upload").notNull(), // upload | link | google-photos
+  sourceId: text("source_id"), // e.g. Google Photos media item id (avoids duplicates)
+  kind: text("kind").default("photo").notNull(), // photo | video
+  poster: text("poster"), // cover image for videos
+  duration: integer("duration").default(0).notNull(), // video length in seconds
 });
 
 export const uploadedFiles = pgTable("uploaded_files", {

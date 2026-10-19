@@ -15,8 +15,8 @@ export const Chip: React.FC<ChipProps> = ({
     <button
       className={`px-4 py-2 font-geist text-xs font-semibold rounded-full transition-all duration-200 cursor-pointer border select-none ${
         active
-          ? "bg-[#222222] border-[#222222] text-white"
-          : "bg-white border-divider text-[#717171] hover:text-[#222222] hover:border-[#717171]/40"
+          ? "bg-foreground border-foreground text-background"
+          : "bg-background border-divider text-muted-foreground hover:text-foreground hover:border-ring"
       } ${className}`}
       {...props}
     >

@@ -45,7 +45,8 @@ export function FilesTab() {
 
   const handleCopyLink = async (id: number, url: string) => {
     try {
-      await navigator.clipboard.writeText(url);
+      // /media/... links are relative; copy the full address.
+      await navigator.clipboard.writeText(url.startsWith("/") ? window.location.origin + url : url);
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
@@ -100,7 +101,8 @@ export function FilesTab() {
   };
 
   const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
-  const maxGB = 2;
+  // Cloudflare R2 free tier: 10 GB storage, then pay-as-you-go (no hard cap).
+  const maxGB = 10;
   const maxBytes = maxGB * 1024 * 1024 * 1024;
   const usagePercentage = Math.min((totalBytes / maxBytes) * 100, 100);
 
@@ -113,9 +115,9 @@ export function FilesTab() {
             cloud_queue
           </span>
           <div>
-            <h3 className="text-sm font-bold text-on-surface">Storage Meter</h3>
+            <h3 className="text-sm font-bold text-on-surface">Cloudflare R2 Storage</h3>
             <p className="text-xs text-on-surface-variant/75 mt-0.5">
-              Manage your uploaded resume, project files and AI assistant logs here.
+              Bucket: gaurav-portfolio · 10 GB free, then pay-as-you-go. Files up to 200 MB each.
             </p>
           </div>
         </div>
@@ -123,7 +125,7 @@ export function FilesTab() {
           <div className="flex items-center justify-between sm:justify-end gap-2 text-xs font-semibold text-on-surface">
             <span className="text-on-surface-variant">Used:</span>
             <span className="font-mono text-primary bg-primary/5 px-2.5 py-1 rounded-lg border border-primary/10">
-              {formatSize(totalBytes)} / 2 GB
+              {formatSize(totalBytes)} / {maxGB} GB free
             </span>
           </div>
           <div className="w-full sm:w-48 h-2 bg-surface-container-high rounded-full overflow-hidden border border-outline-variant/20">

@@ -1,9 +1,12 @@
+import { uploadFile } from "@/lib/upload-client";
+import { useImageCrop, ASPECTS } from "@/app/admin/components/ImageCropper";
 import React, { useState } from "react";
 import { ProjectItem } from "@/lib/data";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Chip } from "@/components/Chip";
 import { Input, TextArea } from "@/components/Input";
+import { youtubeId, youtubeThumb } from "@/lib/youtube";
 
 interface ProjectsTabProps {
   projects: ProjectItem[];
@@ -112,38 +115,33 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
     }
   };
 
-  const uploadFileWithProgress = (file: File, onProgress: (percent: number) => void): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      const formData = new FormData();
-      formData.append("file", file);
+  const uploadFileWithProgress = (file: File, onProgress: (percent: number) => void): Promise<string> =>
+    uploadFile(file, { category: "website", onProgress });
 
-      xhr.open("POST", "/api/upload", true);
+  // Cropping: screenshots can keep their shape or be cut to a ratio; logos are square.
+  const { cropper, cropAndUpload, cropExisting } = useImageCrop();
+  const mediaCrop = { aspects: [ASPECTS.original, ASPECTS.video, ASPECTS.wide, ASPECTS.classic, ASPECTS.square, ASPECTS.portrait], title: "Crop screenshot" };
+  const logoCrop = { aspects: [ASPECTS.square], title: "Crop project logo" };
+  const [croppingIdx, setCroppingIdx] = useState<number | "logo" | null>(null);
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = Math.round((event.loaded / event.total) * 100);
-          onProgress(percentComplete);
-        }
-      };
+  const recropScreenshot = async (idx: number) => {
+    if (!editingProject?.screenshots) return;
+    setCroppingIdx(idx);
+    const url = await cropExisting(editingProject.screenshots[idx], mediaCrop);
+    setCroppingIdx(null);
+    if (url) {
+      setEditingProject((prev) =>
+        prev ? { ...prev, screenshots: (prev.screenshots || []).map((s, i) => (i === idx ? url : s)) } : prev
+      );
+    }
+  };
 
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const res = JSON.parse(xhr.responseText);
-            if (res.url) resolve(res.url);
-            else reject(new Error(res.error || "Upload failed"));
-          } catch {
-            reject(new Error("Invalid response"));
-          }
-        } else {
-          reject(new Error(`Status: ${xhr.status}`));
-        }
-      };
-
-      xhr.onerror = () => reject(new Error("Network error"));
-      xhr.send(formData);
-    });
+  const recropLogo = async () => {
+    if (!editingProject?.image) return;
+    setCroppingIdx("logo");
+    const url = await cropExisting(editingProject.image, logoCrop);
+    setCroppingIdx(null);
+    if (url) setEditingProject((prev) => (prev ? { ...prev, image: url } : prev));
   };
 
   const uploadFiles = async (files: FileList) => {
@@ -154,25 +152,13 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
     const uploadedScreenshots = [...(editingProject.screenshots || [])];
     let coverUrl = editingProject.image || "";
 
-    const totalFiles = files.length;
-    const fileProgresses = new Array(totalFiles).fill(0);
-
     try {
-      for (let i = 0; i < totalFiles; i++) {
-        const url = await uploadFileWithProgress(files[i], (percent) => {
-          fileProgresses[i] = percent;
-          const averageProgress = Math.round(
-            fileProgresses.reduce((sum, p) => sum + p, 0) / totalFiles
-          );
-          setUploadProgress(averageProgress);
-        });
-
-        if (i === 0 && !editingProject.image) {
-          coverUrl = url;
-        } else {
-          uploadedScreenshots.push(url);
-        }
-      }
+      // Each image opens in the cropper ("Use as is" skips it); videos upload straight away.
+      const urls = await cropAndUpload(files, { ...mediaCrop, onProgress: setUploadProgress });
+      urls.forEach((url, i) => {
+        if (i === 0 && !editingProject.image) coverUrl = url;
+        else uploadedScreenshots.push(url);
+      });
       
       setEditingProject({
         ...editingProject,
@@ -224,11 +210,9 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
     
     setIsLogoUploading(true);
     try {
-      const url = await uploadFileWithProgress(file, () => {});
-      setEditingProject({
-        ...editingProject,
-        image: url,
-      });
+      const [url] = await cropAndUpload([file], logoCrop);
+      if (url) setEditingProject((prev) => (prev ? { ...prev, image: url } : prev));
+      e.target.value = "";
     } catch (err) {
       console.error("Logo upload error:", err);
       alert("Error uploading logo image");
@@ -287,6 +271,18 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
     }
   };
 
+  const anyFeatured = projects.some((p) => p.featured);
+  const onHome = (project: ProjectItem, idx: number) => (anyFeatured ? !!project.featured : idx < 4);
+
+  const toggleFeatured = async (project: ProjectItem) => {
+    await fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...project, featured: !project.featured }),
+    });
+    await loadData();
+  };
+
   const deleteProject = async (id: string) => {
     try {
       await fetch(`/api/projects/${id}`, { method: "DELETE" });
@@ -298,11 +294,12 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {cropper}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold">Projects Grid Listing</h2>
           <p className="text-xs text-on-surface-variant mt-1">
-            Drag and drop cards to rearrange projects. The top 2 will be shown on the home page.
+            Drag cards to reorder. Starred projects appear on the home page (if none are starred, the first 4 are shown).
           </p>
         </div>
         <Button
@@ -333,7 +330,7 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
             }`}
           >
             <div>
-              <div className="aspect-[16/9] rounded-xl overflow-hidden mb-4 bg-surface-dim relative group">
+              <div className="aspect-[16/9] rounded-xl overflow-hidden mb-4 bg-muted relative group">
                 {project.image && [".mp4", ".mov", ".webm", ".ogg", ".m4v"].some(ext => project.image.toLowerCase().endsWith(ext) || project.image.toLowerCase().includes("video")) ? (
                   <video src={project.image} className="w-full h-full object-cover" muted loop playsInline />
                 ) : (
@@ -341,11 +338,11 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
                 )}
                 <div className="absolute top-2 left-2 flex gap-1.5 z-10">
                   <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider backdrop-blur-md shadow-sm ${
-                    idx < 2 
+                    onHome(project, idx)
                       ? "bg-emerald-500/95 text-white border border-emerald-400/20" 
                       : "bg-surface-container-high/90 text-on-surface border border-outline-variant/30"
                   }`}>
-                    {idx === 0 ? "1st" : idx === 1 ? "2nd" : idx === 2 ? "3rd" : `${idx + 1}th`} {idx < 2 && "• Homepage"}
+                    #{idx + 1} {project.featured && "★"} {onHome(project, idx) && "• Homepage"}
                   </span>
                 </div>
                 <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-black/80 transition-colors shadow-sm" title="Drag to reorder">
@@ -388,8 +385,18 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
                 Edit
               </Button>
               <Button
+                variant="outline"
+                onClick={() => toggleFeatured(project)}
+                className="px-4 py-2 text-xs"
+                title="Show this project on the home page"
+              >
+                {project.featured ? "★ Starred" : "☆ Star"}
+              </Button>
+              <Button
                 variant="secondary"
-                onClick={() => deleteProject(project.id)}
+                onClick={() => {
+                  if (confirm(`Delete "${project.title}"? This cannot be undone.`)) deleteProject(project.id);
+                }}
                 className="px-4 py-2 text-xs bg-red-500/10 text-red-600 border border-red-500/20 hover:bg-red-500 hover:text-white"
               >
                 Delete
@@ -446,7 +453,7 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
                   />
                   <label 
                     htmlFor="logo-file-upload" 
-                    className="h-12 px-4 rounded-default border border-[#bdc9c94d] bg-white text-secondary font-semibold text-xs flex items-center justify-center cursor-pointer hover:bg-surface-container transition-colors shrink-0"
+                    className="h-10 px-4 rounded-default border border-border bg-background text-secondary font-semibold text-xs flex items-center justify-center cursor-pointer hover:bg-surface-container transition-colors shrink-0"
                   >
                     {isLogoUploading ? (
                       <span className="material-symbols-outlined animate-spin text-sm">sync</span>
@@ -476,11 +483,22 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
                     })()}
                   </div>
                 )}
+                {editingProject.image && !/\.(mp4|mov|webm|ogg|m4v)($|\?)/i.test(editingProject.image) && (
+                  <button
+                    type="button"
+                    onClick={recropLogo}
+                    disabled={croppingIdx !== null}
+                    className="w-fit text-xs font-medium text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">crop</span>
+                    {croppingIdx === "logo" ? "Cropping…" : "Crop logo"}
+                  </button>
+                )}
               </div>
 
               {/* Unified Drag & Drop Upload Zone */}
               <div className="flex flex-col gap-2 border-t border-outline-variant/10 pt-4">
-                <label className="font-geist text-xs font-semibold uppercase tracking-wider text-[#717171]">
+                <label className="font-geist text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Upload Media & Screenshots
                 </label>
                 <div 
@@ -531,7 +549,7 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
                     type="button"
                     variant="outline"
                     onClick={handleAddMediaUrl}
-                    className="h-12 px-4 shrink-0"
+                    className="h-10 px-4 shrink-0"
                   >
                     Add URL
                   </Button>
@@ -544,7 +562,7 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
               {/* Screenshots Previews */}
               {editingProject.screenshots && editingProject.screenshots.length > 0 && (
                 <div className="flex flex-col gap-2 border-t border-outline-variant/10 pt-4">
-                  <label className="font-geist text-xs font-semibold uppercase tracking-wider text-[#717171]">
+                  <label className="font-geist text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Project Screenshots / Videos ({editingProject.screenshots.length})
                   </label>
                   <div className="grid grid-cols-4 gap-3 mt-2">
@@ -564,6 +582,17 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
                             <video src={screenshot} className="w-full h-full object-cover pointer-events-none" muted loop playsInline />
                           ) : (
                             <img src={screenshot} alt={`Screenshot ${idx + 1}`} className="w-full h-full object-cover pointer-events-none" />
+                          )}
+                          {!isVideo && (
+                            <button
+                              type="button"
+                              onClick={() => recropScreenshot(idx)}
+                              disabled={croppingIdx !== null}
+                              title="Crop"
+                              className="absolute top-1 left-1 w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center cursor-pointer hover:bg-black transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">{croppingIdx === idx ? "progress_activity" : "crop"}</span>
+                            </button>
                           )}
                           <button
                             type="button"
@@ -598,11 +627,66 @@ export function ProjectsTab({ projects, loadData }: ProjectsTabProps) {
                 placeholder="https://github.com/..."
               />
               <div className="flex flex-col gap-2">
-                <label className="font-geist text-xs font-semibold uppercase tracking-wider text-[#717171]">
+                <Input
+                  label="YouTube Video (demo / walkthrough)"
+                  value={editingProject.youtubeUrl || ""}
+                  onChange={(e) => {
+                    // Accepts a normal link, a youtu.be link, or the full <iframe> embed code.
+                    const raw = e.target.value;
+                    const id = youtubeId(raw);
+                    setEditingProject({ ...editingProject, youtubeUrl: id ? `https://www.youtube.com/watch?v=${id}` : raw });
+                  }}
+                  placeholder="Paste a YouTube link or the embed code"
+                />
+                {editingProject.youtubeUrl &&
+                  (youtubeId(editingProject.youtubeUrl) ? (
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={youtubeThumb(youtubeId(editingProject.youtubeUrl)!)}
+                        alt=""
+                        className="h-16 w-28 rounded-md border border-border object-cover"
+                      />
+                      <p className="text-[11px] text-on-surface-variant">
+                        Video found. It will play at the top of the project page, with a &ldquo;View on YouTube&rdquo; button.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setEditingProject({ ...editingProject, youtubeUrl: "" })}
+                        className="ml-auto text-xs text-destructive hover:underline cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-destructive">That doesn&apos;t look like a YouTube link.</p>
+                  ))}
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="font-geist text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Case Study / Write-up (Markdown, shown on the project page)
+                </label>
+                <textarea
+                  className="w-full p-4 min-h-[160px] bg-background border border-border rounded-lg font-mono text-xs text-foreground focus:outline-none focus:border-primary resize-y"
+                  value={editingProject.content || ""}
+                  onChange={(e) => setEditingProject({ ...editingProject, content: e.target.value })}
+                  placeholder={"## The problem\nWhat you set out to solve...\n\n## What I built\n- **Feature** — detail"}
+                />
+              </div>
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="size-4 accent-[var(--brand)]"
+                  checked={!!editingProject.featured}
+                  onChange={(e) => setEditingProject({ ...editingProject, featured: e.target.checked })}
+                />
+                <span className="text-sm text-on-surface">Show on home page (starred)</span>
+              </label>
+              <div className="flex flex-col gap-2">
+                <label className="font-geist text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Project Category
                 </label>
                 <select
-                  className="w-full px-4 h-12 bg-[#F7F7F7] border-2 border-transparent rounded-default font-geist text-sm text-[#222222] focus:outline-none focus:border-primary"
+                  className="w-full px-4 h-10 bg-background border border-border rounded-lg font-geist text-sm text-foreground focus:outline-none focus:border-primary"
                   value={editingProject.type || "web"}
                   onChange={(e) => setEditingProject({ ...editingProject, type: e.target.value as "web" | "app" })}
                 >

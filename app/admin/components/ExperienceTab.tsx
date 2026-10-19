@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useImageCrop, ASPECTS } from "@/app/admin/components/ImageCropper";
 import { ExperienceItem } from "@/lib/data";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -91,7 +92,26 @@ export function ExperienceTab({ experiences, loadData }: ExperienceTabProps) {
     }
   };
 
+  const [isLogoUploading, setIsLogoUploading] = useState(false);
+  const { cropper, cropAndUpload, cropExisting } = useImageCrop();
+  const logoCrop = { aspects: [ASPECTS.square], title: "Crop company logo" };
+  const uploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingExperience) return;
+    setIsLogoUploading(true);
+    try {
+      const [url] = await cropAndUpload([file], logoCrop);
+      if (url) setEditingExperience((prev) => (prev ? { ...prev, logo: url } : prev));
+      e.target.value = "";
+    } catch (err: any) {
+      alert("Logo upload failed: " + err.message);
+    } finally {
+      setIsLogoUploading(false);
+    }
+  };
+
   const deleteExperience = async (id: number) => {
+    if (!confirm("Delete this experience? This cannot be undone.")) return;
     try {
       await fetch(`/api/experience/${id}`, { method: "DELETE" });
       await loadData();
@@ -102,6 +122,7 @@ export function ExperienceTab({ experiences, loadData }: ExperienceTabProps) {
 
   return (
     <div className="space-y-8">
+      {cropper}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">Timeline Experience Listings</h2>
         <Button
@@ -137,10 +158,19 @@ export function ExperienceTab({ experiences, loadData }: ExperienceTabProps) {
               </div>
               <div className="flex-grow space-y-2">
                 <div className="flex items-center gap-3">
+                  {exp.logo ? (
+                    <img src={exp.logo} alt="" className="size-8 rounded-lg border border-border object-cover" />
+                  ) : (
+                    <span className="size-8 rounded-lg border border-border bg-surface-container-low flex items-center justify-center text-[10px] font-bold text-on-surface-variant">
+                      {exp.company.slice(0, 2).toUpperCase()}
+                    </span>
+                  )}
                   <h3 className="text-lg font-bold text-on-surface">{exp.company}</h3>
-                  <span className="px-2.5 py-0.5 bg-primary/10 text-primary text-[10px] font-bold uppercase rounded-full">
-                    {exp.badge}
-                  </span>
+                  {exp.url && (
+                    <a href={exp.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                      website
+                    </a>
+                  )}
                 </div>
                 <p className="text-sm font-semibold text-secondary">{exp.role} — <span className="text-xs text-on-surface-variant font-medium">{exp.period}</span></p>
                 <ul className="text-xs text-on-surface-variant space-y-1 pt-1 list-disc pl-4">
@@ -203,37 +233,49 @@ export function ExperienceTab({ experiences, loadData }: ExperienceTabProps) {
                   placeholder="Full Stack Developer"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Employment Period (Start – End)"
+                required
+                value={editingExperience.period || ""}
+                onChange={(e) => setEditingExperience({ ...editingExperience, period: e.target.value })}
+                placeholder="Sep 2025 – Present"
+              />
+              <div className="flex gap-2 items-end">
                 <Input
-                  label="Employment Period"
-                  required
-                  value={editingExperience.period || ""}
-                  onChange={(e) => setEditingExperience({ ...editingExperience, period: e.target.value })}
-                  placeholder="Sep 2025 - Present"
+                  label="Company Logo URL"
+                  value={editingExperience.logo || ""}
+                  onChange={(e) => setEditingExperience({ ...editingExperience, logo: e.target.value })}
+                  placeholder="https://... (square image works best)"
                 />
-                <Input
-                  label="Badge label"
-                  required
-                  value={editingExperience.badge || ""}
-                  onChange={(e) => setEditingExperience({ ...editingExperience, badge: e.target.value })}
-                  placeholder="Current"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="font-geist text-xs font-semibold uppercase tracking-wider text-[#717171]">
-                  Badge Styling Type
+                <label className="h-10 px-4 rounded-default border border-border bg-background text-on-surface font-semibold text-xs flex items-center justify-center cursor-pointer hover:bg-surface-container-low transition-colors shrink-0">
+                  {isLogoUploading ? "Uploading…" : "Upload"}
+                  <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={isLogoUploading} />
                 </label>
-                <select
-                  className="w-full px-4 h-12 bg-[#F7F7F7] border-2 border-transparent rounded-default font-geist text-sm text-[#222222] focus:outline-none focus:border-primary"
-                  value={editingExperience.badgeType || "primary"}
-                  onChange={(e) => setEditingExperience({ ...editingExperience, badgeType: e.target.value as "primary" | "secondary" })}
-                >
-                  <option value="primary">Primary (Teal color)</option>
-                  <option value="secondary">Secondary (Neutral color)</option>
-                </select>
+                {editingExperience.logo && (
+                  <button
+                    type="button"
+                    title="Crop logo"
+                    onClick={async () => {
+                      const url = await cropExisting(editingExperience.logo!, logoCrop);
+                      if (url) setEditingExperience((prev) => (prev ? { ...prev, logo: url } : prev));
+                    }}
+                    className="group relative size-10 shrink-0 cursor-pointer"
+                  >
+                    <img src={editingExperience.logo} alt="" className="size-10 rounded-lg border border-border object-cover" />
+                    <span className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="material-symbols-outlined text-[16px]">crop</span>
+                    </span>
+                  </button>
+                )}
               </div>
+              <Input
+                label="Company Website"
+                value={editingExperience.url || ""}
+                onChange={(e) => setEditingExperience({ ...editingExperience, url: e.target.value })}
+                placeholder="https://company.com"
+              />
               <TextArea
-                label="Work Bullets (One per line)"
+                label="Work Bullets (one per line · **bold** · [text](https://site) for a website preview · [text](/projects/id) for a project card)"
                 required
                 value={tempBullets}
                 onChange={(e) => setTempBullets(e.target.value)}

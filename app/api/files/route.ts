@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { uploadedFiles } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import { UTApi } from "uploadthing/server";
+import { deleteObject, keyFromUrl } from "@/lib/r2";
 
 export async function GET() {
   try {
@@ -35,21 +36,21 @@ export async function DELETE(request: Request) {
     
     const file = fileRecords[0];
 
-    // Delete from UploadThing
-    const token = process.env.UPLOADTHING_TOKEN;
-    if (token) {
+    // Delete the stored file: Cloudflare R2 for new uploads, UploadThing for older ones.
+    const r2Key = keyFromUrl(file.url);
+    if (r2Key) {
       try {
-        const utapi = new UTApi({ token });
-        const key = file.url.split("/").pop();
-        if (key) {
-          await utapi.deleteFiles([key]);
-          console.log(`[UploadThing] Successfully deleted file key: ${key}`);
-        }
-      } catch (utErr) {
-        console.error("[UploadThing] Failed to delete file:", utErr);
+        await deleteObject(r2Key);
+      } catch (err) {
+        console.error("[R2] Failed to delete file:", err);
       }
-    } else {
-      console.warn("UploadThing token is not set, skipping CDN deletion");
+    } else if (/utfs\.io|ufs\.sh|uploadthing/.test(file.url) && process.env.UPLOADTHING_TOKEN) {
+      try {
+        const key = file.url.split("/").pop();
+        if (key) await new UTApi({ token: process.env.UPLOADTHING_TOKEN }).deleteFiles([key]);
+      } catch (err) {
+        console.error("[UploadThing] Failed to delete legacy file:", err);
+      }
     }
 
     // Delete from Database

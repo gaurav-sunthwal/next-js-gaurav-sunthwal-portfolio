@@ -15,17 +15,21 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { id, degree, school, location, image } = body;
+    const { id, degree, school } = body;
+    const location = body.location || "";
+    const image = body.image || "";
+    const period = body.period?.trim() || null;
+    const url = body.url?.trim() || null;
 
-    if (!degree || !school || !location || !image) {
+    if (!degree || !school) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     if (id) {
-      await db.update(education).set({ degree, school, location, image }).where(eq(education.id, Number(id)));
+      await db.update(education).set({ degree, school, location, image, period, url }).where(eq(education.id, Number(id)));
       return NextResponse.json({ success: true, updated: id });
     } else {
-      const inserted = await db.insert(education).values({ degree, school, location, image }).returning({ id: education.id });
+      const inserted = await db.insert(education).values({ degree, school, location, image, period, url }).returning({ id: education.id });
       return NextResponse.json({ success: true, inserted: inserted[0]?.id });
     }
   } catch (error: any) {

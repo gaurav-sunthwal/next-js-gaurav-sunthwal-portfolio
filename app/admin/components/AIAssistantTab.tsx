@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { uploadFile } from "@/lib/upload-client";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Input } from "@/components/Input";
@@ -95,27 +96,11 @@ export function AIAssistantTab({ active, onMutation, floating }: AIAssistantTabP
     if (!file) return;
 
     setIsUploadingFile(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("category", "chat");
-
     try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSelectedFile({
-          url: data.url,
-          name: file.name,
-          type: file.type,
-        });
-      } else {
-        alert("Failed to upload file");
-      }
-    } catch (err) {
-      alert("Error uploading file");
+      const url = await uploadFile(file, { category: "chat" });
+      setSelectedFile({ url, name: file.name, type: file.type });
+    } catch (err: any) {
+      alert("Error uploading file: " + err.message);
     } finally {
       setIsUploadingFile(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -137,27 +122,11 @@ export function AIAssistantTab({ active, onMutation, floating }: AIAssistantTabP
         }
 
         setIsUploadingFile(true);
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("category", "chat");
-
         try {
-          const res = await fetch("/api/upload", {
-            method: "POST",
-            body: formData,
-          });
-          if (res.ok) {
-            const data = await res.json();
-            setSelectedFile({
-              url: data.url,
-              name: file.name || "pasted-image.png",
-              type: file.type,
-            });
-          } else {
-            alert("Failed to upload pasted file");
-          }
-        } catch (err) {
-          alert("Error uploading pasted file");
+          const url = await uploadFile(file, { category: "chat" });
+          setSelectedFile({ url, name: file.name || "pasted-image.png", type: file.type });
+        } catch (err: any) {
+          alert("Error uploading pasted file: " + err.message);
         } finally {
           setIsUploadingFile(false);
         }
@@ -220,7 +189,7 @@ export function AIAssistantTab({ active, onMutation, floating }: AIAssistantTabP
 
   if (active) {
     return (
-      <div className="space-y-6 flex flex-col h-[calc(100vh-12rem)]">
+      <div className="space-y-6 flex flex-col h-[calc(100vh-10rem)]">
         <div className="flex justify-between items-center shrink-0">
           <div>
             <h2 className="text-xl font-bold text-on-surface">AI Portfolio Assistant</h2>

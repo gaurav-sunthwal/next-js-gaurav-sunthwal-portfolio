@@ -15,17 +15,19 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { id, name, subtitle } = body;
+    const { id, name } = body;
+    const subtitle = body.subtitle || "";
+    const icon = body.icon?.trim() || null;
 
-    if (!name || !subtitle) {
+    if (!name) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     if (id) {
-      await db.update(skills).set({ name, subtitle }).where(eq(skills.id, Number(id)));
+      await db.update(skills).set({ name, subtitle, icon }).where(eq(skills.id, Number(id)));
       return NextResponse.json({ success: true, updated: id });
     } else {
-      const inserted = await db.insert(skills).values({ name, subtitle }).returning({ id: skills.id });
+      const inserted = await db.insert(skills).values({ name, subtitle, icon }).returning({ id: skills.id });
       return NextResponse.json({ success: true, inserted: inserted[0]?.id });
     }
   } catch (error: any) {

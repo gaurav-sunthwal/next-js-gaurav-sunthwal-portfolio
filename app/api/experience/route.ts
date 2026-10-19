@@ -16,6 +16,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { id, company, role, period, badge, badgeType, bullets, tech } = body;
+    const logo = body.logo?.trim() || null;
+    const url = body.url?.trim() || null;
 
     if (!company || !role || !period) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -25,7 +27,7 @@ export async function POST(request: Request) {
       // Update
       await db
         .update(experiences)
-        .set({ company, role, period, badge, badgeType, bullets, tech })
+        .set({ company, role, period, badge: badge || "", badgeType: badgeType || "primary", bullets, tech, logo, url })
         .where(eq(experiences.id, Number(id)));
       return NextResponse.json({ success: true, updated: id });
     } else {
@@ -38,6 +40,8 @@ export async function POST(request: Request) {
         badgeType: badgeType || "primary",
         bullets: bullets || [],
         tech: tech || [],
+        logo,
+        url,
       }).returning({ id: experiences.id });
       return NextResponse.json({ success: true, inserted: inserted[0]?.id });
     }

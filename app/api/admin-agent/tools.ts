@@ -13,6 +13,7 @@ import {
   settings,
 } from "@/lib/schema";
 import { eq, asc } from "drizzle-orm";
+import { isSecretSetting } from "@/lib/site-settings";
 
 // Helper function to stringify responses
 const stringify = (val: any) => JSON.stringify(val);
@@ -35,7 +36,7 @@ export const listProjectsTool = tool(
 );
 
 export const createOrUpdateProjectTool = tool(
-  async ({ id, title, description, image, tags, type, demoUrl, screenshots, githubUrl }) => {
+  async ({ id, title, description, image, tags, type, demoUrl, screenshots, githubUrl, youtubeUrl }) => {
     try {
       const linksList = [];
       if (demoUrl) linksList.push({ label: "Live Demo", href: demoUrl, icon: "play_circle" });
@@ -45,7 +46,7 @@ export const createOrUpdateProjectTool = tool(
       if (existing.length > 0) {
         await db
           .update(projects)
-          .set({ title, description, image, tags, type, demoUrl, screenshots, links: linksList })
+          .set({ title, description, image, tags, type, demoUrl, screenshots, links: linksList, ...(youtubeUrl !== undefined ? { youtubeUrl: youtubeUrl || null } : {}) })
           .where(eq(projects.id, id));
         return stringify({ success: true, updated: id });
       } else {
@@ -59,6 +60,7 @@ export const createOrUpdateProjectTool = tool(
           demoUrl: demoUrl || "",
           screenshots: screenshots || [],
           links: linksList,
+          youtubeUrl: youtubeUrl || null,
         });
         return stringify({ success: true, inserted: id });
       }
@@ -79,6 +81,7 @@ export const createOrUpdateProjectTool = tool(
       demoUrl: z.string().optional().describe("Live demonstration URL."),
       screenshots: z.array(z.string()).optional().describe("List of screenshot image URLs."),
       githubUrl: z.string().optional().describe("Source code repository URL."),
+      youtubeUrl: z.string().optional().describe("YouTube video URL (demo/walkthrough) shown at the top of the project page. Empty string removes it."),
     }),
   }
 );
@@ -631,8 +634,9 @@ export const listSettingsTool = tool(
   async () => {
     try {
       const allSettings = await db.select().from(settings);
+      // Never hand API keys or sign-in tokens to the model.
       const resObj = allSettings.reduce((acc, curr) => {
-        acc[curr.key] = curr.value;
+        if (!isSecretSetting(curr.key)) acc[curr.key] = curr.value;
         return acc;
       }, {} as Record<string, string>);
       return stringify(resObj);
@@ -642,7 +646,8 @@ export const listSettingsTool = tool(
   },
   {
     name: "list_settings",
-    description: "Get all settings key-value pairs (which control homepage text content like hero_title, cta_title, etc.).",
+    description:
+      "Get the site settings (profile text shown on the site: name, tagline, bio, location, email, social links, contact card text, footer note, gallery, etc.).",
     schema: z.object({}),
   }
 );
@@ -650,6 +655,7 @@ export const listSettingsTool = tool(
 export const updateSettingTool = tool(
   async ({ key, value }) => {
     try {
+      if (isSecretSetting(key)) return stringify({ error: "Keys and tokens can only be changed by hand in the admin panel." });
       const existing = await db.select().from(settings).where(eq(settings.key, key));
       if (existing.length > 0) {
         await db.update(settings).set({ value }).where(eq(settings.key, key));

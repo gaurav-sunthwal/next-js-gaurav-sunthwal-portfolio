@@ -20,11 +20,14 @@ export const Button: React.FC<ButtonProps> = ({
   className = "",
   ...props
 }) => {
-  const baseClass = variant === "primary"
-    ? `px-5 h-10 inline-flex items-center justify-center font-geist font-medium text-sm rounded-default bg-primary text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] hover:bg-primary-dark transition-all duration-200 cursor-pointer active:scale-98 ${className}`
-    : variant === "outline"
-    ? `px-5 h-10 inline-flex items-center justify-center font-geist font-medium text-sm rounded-default bg-transparent border border-[#222222] text-[#222222] hover:bg-surface-low transition-all duration-200 cursor-pointer active:scale-98 ${className}`
-    : `px-5 h-10 inline-flex items-center justify-center font-geist font-medium text-sm rounded-default bg-secondary text-white hover:bg-secondary/90 transition-all duration-200 cursor-pointer active:scale-98 ${className}`;
+  const base =
+    "px-4 h-10 inline-flex items-center justify-center gap-1.5 font-sans font-medium text-sm rounded-lg transition-colors duration-150 cursor-pointer active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none";
+  const styles = {
+    primary: "bg-foreground text-background hover:bg-foreground/90",
+    outline: "bg-background border border-border text-foreground hover:bg-muted",
+    secondary: "bg-muted text-foreground hover:bg-muted/70",
+  };
+  const baseClass = `${base} ${styles[variant]} ${className}`;
 
   if (href) {
     return (
