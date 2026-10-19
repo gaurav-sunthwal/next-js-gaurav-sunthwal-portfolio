@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getProjects } from "@/lib/content";
-
-const BASE_URL = "https://gauravsunthwal.vercel.app";
+import { SITE_URL as BASE_URL } from "@/lib/seo";
 
 export const revalidate = 3600;
 

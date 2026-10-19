@@ -15,8 +15,9 @@ import { Divider, Reveal, SectionTitle, TechChip } from "@/components/site/ui";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "About",
-  description: "More about Gaurav Sunthwal: links, photos, skills, education and certifications.",
+  title: "About Gaurav Sunthwal",
+  description:
+    "About Gaurav Sunthwal, a full stack developer and AI engineer from Pune, India: background, skills, education, certifications and links.",
   alternates: { canonical: "/about" },
 };
 

@@ -7,7 +7,8 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Projects",
-  description: "Things Gaurav Sunthwal has built: full-stack web apps, React Native mobile apps and AI products.",
+  description:
+    "Projects by Gaurav Sunthwal, full stack developer and AI engineer: Next.js web apps, React Native mobile apps and Generative AI products.",
   alternates: { canonical: "/projects" },
 };
 

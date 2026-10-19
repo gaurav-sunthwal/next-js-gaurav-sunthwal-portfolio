@@ -6,6 +6,7 @@ import { TooltipLayer } from "@/components/site/TooltipLayer";
 import { SoundEffects } from "@/components/site/Sounds";
 import { RevealObserver } from "@/components/site/RevealObserver";
 import { HideOnWidePages, SiteFrame } from "@/components/site/HideOnWidePages";
+import { Clarity } from "@/components/site/Clarity";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const settings = await getSettings();
@@ -23,6 +24,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <TooltipLayer />
       <SoundEffects />
       <RevealObserver />
+      <Clarity />
     </>
   );
 }

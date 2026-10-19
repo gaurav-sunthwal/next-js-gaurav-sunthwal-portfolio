@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { FloatingPortal, useHoverPopup } from "./Floating";
+import { track } from "@/lib/analytics";
 
 const W = 200;
 const H = 125;
@@ -57,7 +58,10 @@ export function LinkPreview({
         {...triggerProps}
         onPointerEnter={(e) => {
           // Only start fetching the screenshot once someone actually hovers.
-          if (!src && e.pointerType === "mouse") setSrc(image || screenshotUrl(href));
+          if (!src && e.pointerType === "mouse") {
+            setSrc(image || screenshotUrl(href));
+            track("link_preview", { destination: href.replace(/^https?:\/\/(www\.)?/, "").split("/")[0] });
+          }
           triggerProps.onPointerEnter(e);
         }}
         onPointerMove={(e) => {

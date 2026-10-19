@@ -1,11 +1,14 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
+import { setTag, track } from "@/lib/analytics";
 
 export function ThemeToggle() {
   const toggle = () => {
     const root = document.documentElement;
     const next = root.classList.contains("dark") ? "light" : "dark";
+    track("theme_toggle", { to: next });
+    setTag("theme", next);
     const apply = () => {
       root.classList.toggle("dark", next === "dark");
       try {

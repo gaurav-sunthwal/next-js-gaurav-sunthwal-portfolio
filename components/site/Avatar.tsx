@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@/lib/analytics";
 
 /** Profile photo; when several photos are set in the admin, clicking cycles through them. */
 export function Avatar({ urls, name }: { urls: string[]; name: string }) {
@@ -32,6 +33,7 @@ export function Avatar({ urls, name }: { urls: string[]; name: string }) {
         onClick={() => {
           setClicked(true);
           setIndex((i) => (i + 1) % urls.length);
+          track("avatar_click");
         }}
         aria-label={multiple ? `Photo of ${name}. Show another photo` : `Photo of ${name}`}
         className="relative block size-16 overflow-hidden rounded-2xl border shadow-lg ring-4 ring-muted transition-transform duration-200 enabled:cursor-pointer enabled:hover:scale-[1.03] enabled:active:scale-95 sm:size-20 md:size-24 motion-reduce:transition-none"
@@ -41,7 +43,7 @@ export function Avatar({ urls, name }: { urls: string[]; name: string }) {
           <img
             key={url + i}
             src={url}
-            alt=""
+            alt={i === 0 ? name : ""}
             width={96}
             height={96}
             loading={i === 0 ? "eager" : "lazy"}

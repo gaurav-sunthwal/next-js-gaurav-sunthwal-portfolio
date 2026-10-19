@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { youtubeThumb } from "@/lib/youtube";
+import { prioritizeSession, track } from "@/lib/analytics";
 
 /**
  * Shows the video thumbnail with a play button and only loads YouTube's
@@ -24,7 +25,11 @@ export function YouTubeEmbed({ id, title }: { id: string; title: string }) {
       ) : (
         <button
           type="button"
-          onClick={() => setPlaying(true)}
+          onClick={() => {
+            setPlaying(true);
+            track("youtube_play", { video: title });
+            prioritizeSession("youtube_play");
+          }}
           data-sfx="tap"
           aria-label={`Play video: ${title}`}
           className="group absolute inset-0 size-full cursor-pointer"

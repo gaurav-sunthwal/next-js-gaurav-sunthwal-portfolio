@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
+import { track } from "@/lib/analytics";
 
 /*
  * Tiny interface sounds, synthesised with the Web Audio API (no audio files).
@@ -125,6 +126,7 @@ export function SoundToggle() {
 
   const toggle = () => {
     const next = !on;
+    track("sound_toggle", { to: next ? "on" : "off" });
     try {
       localStorage.setItem(KEY, next ? "on" : "off");
     } catch {}

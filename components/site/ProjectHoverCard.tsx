@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { FloatingPortal, useHoverPopup } from "./Floating";
+import { track } from "@/lib/analytics";
 
 export type ProjectMini = { id: string; title: string; description: string; image: string; logo?: string };
 
@@ -21,6 +22,10 @@ export function ProjectHoverCard({ project, children }: { project: ProjectMini; 
         className="font-medium text-foreground underline underline-offset-2"
         data-sfx-hover="whisper"
         {...triggerProps}
+        onPointerEnter={(e) => {
+          triggerProps.onPointerEnter(e);
+          if (e.pointerType === "mouse") track("project_preview_hover", { project: project.id });
+        }}
       >
         {children}
         <sup className="ml-0.5 text-[9px] text-brand">?</sup>

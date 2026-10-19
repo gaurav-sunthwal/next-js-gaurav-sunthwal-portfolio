@@ -9,6 +9,7 @@ import { projectBackdrop, projectPreview } from "@/components/site/ProjectCard";
 import { GithubIcon, YoutubeIcon } from "@/components/site/brand-icons";
 import { YouTubeEmbed } from "@/components/site/YouTubeEmbed";
 import { youtubeId, youtubeWatchUrl } from "@/lib/youtube";
+import { PERSON_NAME, SITE_URL, absoluteUrl } from "@/lib/seo";
 
 export const revalidate = 300;
 
@@ -22,11 +23,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const project = await getProject(id);
   if (!project) return { title: "Project not found" };
   const image = projectPreview(project);
+  const title = `${project.title} — built by ${PERSON_NAME}`;
   return {
-    title: project.title,
+    title,
     description: project.description,
+    keywords: [project.title, PERSON_NAME, ...project.tags],
     alternates: { canonical: `/projects/${project.id}` },
-    openGraph: { title: project.title, description: project.description, images: image && !isVideo(image) ? [image] : [] },
+    openGraph: { title, description: project.description, type: "article", images: image && !isVideo(image) ? [image] : undefined },
+    twitter: { card: "summary_large_image", title, description: project.description },
   };
 }
 
@@ -63,8 +67,36 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const hero = videoId ? undefined : media[0];
   const galleryItems = videoId ? media : isApp ? media.slice(3) : media.slice(1);
 
+  const url = `${SITE_URL}/projects/${project.id}`;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": isApp ? "SoftwareApplication" : "CreativeWork",
+        name: project.title,
+        description: project.description,
+        url,
+        ...(project.image && !isVideo(project.image) ? { image: absoluteUrl(project.image) } : {}),
+        ...(isApp ? { applicationCategory: "MobileApplication", operatingSystem: "Android, iOS" } : {}),
+        keywords: project.tags.join(", "),
+        author: { "@id": `${SITE_URL}/#person`, "@type": "Person", name: PERSON_NAME, url: SITE_URL },
+        creator: { "@id": `${SITE_URL}/#person` },
+        ...(project.demoUrl && project.demoUrl !== "#" ? { sameAs: project.demoUrl } : {}),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: PERSON_NAME, item: SITE_URL },
+          { "@type": "ListItem", position: 2, name: "Projects", item: `${SITE_URL}/projects` },
+          { "@type": "ListItem", position: 3, name: project.title, item: url },
+        ],
+      },
+    ],
+  };
+
   return (
     <article className="flex flex-col gap-6">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <Reveal className="flex items-center gap-3">
         <Link
           href="/projects"

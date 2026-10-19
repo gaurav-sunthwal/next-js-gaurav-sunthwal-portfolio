@@ -7,6 +7,7 @@ import { RichText } from "./RichText";
 import { LinkPreview } from "./LinkPreview";
 import type { ProjectMini } from "./ProjectHoverCard";
 import { TechIcon } from "./ui";
+import { track } from "@/lib/analytics";
 
 function splitPeriod(period: string) {
   const [start, ...rest] = period.split(/\s+[–—-]\s+/);
@@ -49,7 +50,10 @@ export function ExperienceList({ items, projects }: { items: Experience[]; proje
                 aria-expanded={isOpen}
                 aria-controls={panelId}
                 data-sfx="expand"
-                onClick={() => setOpen(isOpen ? null : item.id)}
+                onClick={() => {
+                  setOpen(isOpen ? null : item.id);
+                  if (!isOpen) track("experience_expand", { company: item.company });
+                }}
                 className="group flex flex-1 cursor-pointer items-center gap-3.5 rounded-xl px-3 py-3.5 text-left focus-visible:outline-none"
               >
                 {item.logo ? (

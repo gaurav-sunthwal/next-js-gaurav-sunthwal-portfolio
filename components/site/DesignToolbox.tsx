@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { setTag, track } from "@/lib/analytics";
 
 const FONTS = [
   { id: "sans", label: "Sans" },
@@ -48,6 +49,7 @@ export function DesignToolbox({ children }: { children: ReactNode }) {
     setFont(document.documentElement.dataset.font ?? "sans");
     setAccent(document.documentElement.dataset.accent ?? "blue");
     setOpen(true);
+    track("design_toolbox_open");
   };
 
   useEffect(() => {
@@ -105,6 +107,8 @@ export function DesignToolbox({ children }: { children: ReactNode }) {
                   onClick={() => {
                     setFont(f.id);
                     apply("font", f.id, "sans");
+                    track("design_font", { font: f.id });
+                    setTag("font", f.id);
                   }}
                   className={`h-6 w-7 cursor-pointer rounded-full text-[11px] leading-none transition-colors ${
                     f.id === "mono" ? "font-mono" : ""
@@ -125,6 +129,8 @@ export function DesignToolbox({ children }: { children: ReactNode }) {
                   onClick={() => {
                     setAccent(a.id);
                     apply("accent", a.id, "blue");
+                    track("design_accent", { accent: a.id });
+                    setTag("accent", a.id);
                   }}
                   className={`size-3.5 cursor-pointer rounded-full ring-offset-1 ring-offset-background transition-shadow ${a.swatch} ${
                     accent === a.id ? "ring-1 ring-foreground/60" : "hover:ring-1 hover:ring-border"

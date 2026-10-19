@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Loader2, Send } from "lucide-react";
+import { prioritizeSession, track } from "@/lib/analytics";
 
 const field =
   "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 transition-colors focus:border-brand/60 focus:outline-none focus:ring-2 focus:ring-brand/20";
@@ -23,9 +24,12 @@ export function ContactForm() {
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error();
+      track("contact_submit", { subject: form.subject });
+      prioritizeSession("contact_submit");
       setState("sent");
       setForm({ name: "", email: "", subject: "", message: "" });
     } catch {
+      track("contact_error");
       setState("error");
     }
   };

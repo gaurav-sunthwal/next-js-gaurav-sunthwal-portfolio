@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Put the CSS inside each page's HTML instead of a separate file. Pages render
+    // faster for first-time visitors, and Microsoft Clarity records the styles with
+    // the page, so session replays look exactly like the real site.
+    inlineCss: true,
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**" },

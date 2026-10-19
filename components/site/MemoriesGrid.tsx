@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { play } from "./Sounds";
+import { track } from "@/lib/analytics";
 
 export type MemoryPhoto = {
   id: number;
@@ -118,7 +119,10 @@ export function MemoriesGrid({ photos }: { photos: MemoryPhoto[] }) {
               key={chip}
               type="button"
               data-sfx="soft"
-              onClick={() => setFilter(chip)}
+              onClick={() => {
+                setFilter(chip);
+                track("memory_filter", { place: chip });
+              }}
               className={`relative shrink-0 cursor-pointer whitespace-nowrap px-3 py-1.5 text-sm transition-colors ${
                 filter === chip ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
@@ -137,7 +141,12 @@ export function MemoriesGrid({ photos }: { photos: MemoryPhoto[] }) {
               <button
                 key={photo.id}
                 type="button"
-                onClick={() => setOpen(index)}
+                onClick={() => {
+                  setOpen(index);
+                  track(photo.kind === "video" ? "memory_video_open" : "memory_open", {
+                    memory: photo.caption || photo.takenOn || `#${photo.id}`,
+                  });
+                }}
                 data-sfx="pop"
                 data-sfx-hover="whisper"
                 className="group relative block w-full cursor-zoom-in overflow-hidden rounded-2xl bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -192,6 +201,7 @@ function Lightbox({
     (dir: number) => {
       onChange((index + dir + n) % n);
       play("soft");
+      track("memory_next", { direction: dir > 0 ? "next" : "previous" });
     },
     [index, n, onChange]
   );
@@ -258,6 +268,8 @@ function Lightbox({
             controls
             autoPlay
             playsInline
+            onPlay={() => track("memory_video_play", { memory: photo.caption || `#${photo.id}` })}
+            onEnded={() => track("memory_video_complete", { memory: photo.caption || `#${photo.id}` })}
             onClick={(e) => e.stopPropagation()}
             className="pop-in max-h-full max-w-full rounded-lg bg-black shadow-2xl"
           />

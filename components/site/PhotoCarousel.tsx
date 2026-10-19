@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { play } from "./Sounds";
+import { track } from "@/lib/analytics";
 
 export type Photo = { src: string; caption: string };
 
@@ -19,6 +20,7 @@ export function PhotoCarousel({ photos }: { photos: Photo[] }) {
   const go = (dir: number) => {
     setIndex((i) => (i + dir + n) % n);
     play("soft");
+    track("gallery_swipe", { direction: dir > 0 ? "next" : "previous" });
   };
 
   // Shortest signed distance from the active photo, so the loop wraps nicely.
